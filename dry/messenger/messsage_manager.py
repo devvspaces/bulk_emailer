@@ -1,6 +1,6 @@
 from typing import Any, Dict, Type
 from django.http.request import HttpRequest
-from django.template.loader import render_to_string
+from django.template.loader import get_template
 
 
 class BaseMessageManager:
@@ -12,21 +12,25 @@ class BaseMessageManager:
 
 
 class HtmlMessageManager(BaseMessageManager):
-    def __init__(self, template: str, request: Type[HttpRequest]) -> None:
-        self.__template = template
+    def __init__(
+        self, template_name: str,
+        request: Type[HttpRequest] = None,
+        context: dict = None
+    ) -> None:
+        self.__template = get_template(template_name)
         self.__request = request
-        self.__extra_context = self.get_extra_context()
+        if context is None:
+            context = {}
+        self.__extra_context = context
 
-    def get_extra_context(self) -> Dict[str, Any]:
-        extra_context = {
-            "request": self.__request
-        }
-        return extra_context
+    def get_context(self) -> Dict[str, Any]:
+        return self.__extra_context
 
-    def render_message(self, context: dict) -> str:
-        if not self.__template:
-            raise TypeError('Must provide a template name')
+    def render_message(self, context: dict = None) -> str:
+        if context is None:
+            context = {}
 
-        context.update(self.__extra_context)
-        message = render_to_string(self.__template, context)
+        extra_context = self.get_context()
+        extra_context.update(context)
+        message = self.__template.render(extra_context, self.__request)
         return message

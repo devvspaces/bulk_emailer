@@ -42,12 +42,24 @@ class BaseEmailManager:
             print(message)
             return True
 
-    def send_email(self, message) -> bool:
+    def send_mail(self) -> bool:
+        raise NotImplementedError('No send mail function')
+
+    def send_email(
+        self, message: str, fail: bool = True,
+        **kwargs
+    ) -> bool:
         self.print_message(message)
 
         if self.__block_send:
             return True
 
+        try:
+            kwargs['message'] = message
+            return self.send_mail(**kwargs)
+        except Exception as e:
+            if not fail:
+                raise e
         return False
 
 
@@ -83,18 +95,12 @@ class SendGridEmailManager(BaseEmailManager):
     def get_post_url(self) -> str:
         return 'https://api.sendgrid.com/v3/mail/send'
 
-    def send_email(
-        self, email: str, subject: str, message: str, fail: bool = True
+    def send_mail(
+        self, email: str, subject: str, message: str, **kwargs
     ):
-        super().send_email(message)
-        try:
-            response = requests.post(
-                url=self.get_post_url(),
-                json=self.get_post_data(email, subject, message),
-                headers=self.get_headers()
-            )
-            return response.status_code == 200
-        except Exception as e:
-            if not fail:
-                raise e
-        return False
+        response = requests.post(
+            url=self.get_post_url(),
+            json=self.get_post_data(email, subject, message),
+            headers=self.get_headers()
+        )
+        return response.status_code == 200
