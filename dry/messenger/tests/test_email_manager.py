@@ -45,6 +45,19 @@ class TestManager(SimpleTestCase):
         computed = self.manager.get_sender_email()
         self.assertEqual(computed, 'test@example.com')
 
+    def test_get_reply_email_returns_sender(self):
+        computed = self.manager.get_reply_email()
+        self.assertEqual(computed, 'test@example.com')
+
+    def test_get_reply_email(self):
+        manager = BaseEmailManager(
+            domain='example.com',
+            sender='test',
+            reply_email='noreplytest@gmail.com'
+        )
+        computed = manager.get_reply_email()
+        self.assertEqual(computed, 'noreplytest@gmail.com')
+
     def test_print_message_without_debug(self):
         with redirect_stdout(StringIO()) as f:
             computed = self.manager.print_message('hello world')
@@ -97,7 +110,8 @@ class TestSendGridManager(SimpleTestCase):
         manager = SendGridEmailManager(
             domain='example.com',
             sender='test',
-            api_key='test_key'
+            api_key='test_key',
+            reply_email='noreply@test.io'
         )
         self.manager = manager
 
@@ -128,6 +142,7 @@ class TestSendGridManager(SimpleTestCase):
         expected = {
             "personalizations": [{"to": [{"email": 'me@gmail.com'}]}],
             "from": {"email": 'test@example.com'},
+            "reply_to": {"email": 'noreply@test.io'},
             "subject": 'testings',
             "content": [{"type": "text/html", "value": 'hello world'}]
         }

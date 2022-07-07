@@ -133,11 +133,9 @@ must be {self.get_supported_exts()}. Current format {ext}")
         self.__read_map = read_map
 
     def validate_ext(self) -> None:
-        # splits = self.get_file_path().name.split('.')
         ext = self.get_file_path().suffix[1:].lower()
         if not ext:
             raise TypeError('File does not have an extension')
-        # ext = splits[-1]
         self.set_ext_read_map(ext)
 
     def run_checks(self) -> None:
