@@ -9,12 +9,14 @@ import requests
 class BaseEmailManager:
     def __init__(
         self, domain: str, sender: str,
-        debug: bool = False, block_send: bool = False
+        debug: bool = False, block_send: bool = False,
+        reply_email: str = None
     ) -> None:
         self.__domain = domain
         self.__sender = sender
         self.__debug = debug
         self.__block_send = block_send
+        self.__reply_email = reply_email
 
     def set_debug(self) -> None:
         self.__debug = True
@@ -36,6 +38,11 @@ class BaseEmailManager:
 
     def get_sender_email(self) -> str:
         return f"{self.__sender}@{self.__domain}"
+
+    def get_reply_email(self) -> str:
+        if self.__reply_email is None:
+            return self.get_sender_email()
+        return self.__reply_email
 
     def print_message(self, message: str) -> Optional[bool]:
         if self.__debug:
@@ -64,8 +71,11 @@ class BaseEmailManager:
 
 
 class SendGridEmailManager(BaseEmailManager):
-    def __init__(self, api_key: str, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(
+        self, api_key: str, domain: str, sender: str, debug: bool = False,
+        block_send: bool = False, reply_email: str = None
+    ) -> None:
+        super().__init__(domain, sender, debug, block_send, reply_email)
         self.__api_key = api_key
         self.__headers: dict = self.set_headers()
 
@@ -87,6 +97,7 @@ class SendGridEmailManager(BaseEmailManager):
         data = {
             "personalizations": [{"to": [{"email": email}]}],
             "from": {"email": self.get_sender_email()},
+            "reply_to": {"email": self.get_reply_email()},
             "subject": subject,
             "content": [{"type": "text/html", "value": message}]
         }
