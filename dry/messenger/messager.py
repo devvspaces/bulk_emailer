@@ -109,6 +109,13 @@ class ExcelMessenger(BaseMessenger):
     Files supported: xls, xlsx, csv, csv.gz
     """
     def __init__(self, file_path: str, **kwargs) -> None:
+        """
+        Set up excel manager with file path to the accepted readable file,
+        This sets up the neccessary properties before calling parent class
+        init setup to run checks.
+
+        :param str file_path: path to file
+        """
         self.__file_path = Path(file_path)
         self.__supported_read_map = {
             'xls': pd.read_excel, 'xlsx': pd.read_excel,
