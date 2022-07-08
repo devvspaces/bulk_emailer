@@ -133,12 +133,18 @@ def test_base_manager_get_message_data(messenger: B):
 
 def test_base_manager_start_process_without_managers(messenger: B):
     with pytest.raises(NotImplementedError, match=r'No \w+ manager provided'):
-        messenger.start_process()
+        messenger.start_process(
+            subject='test',
+            message='test'
+        )
 
 
 def test_base_manager_start_process_with_managers(messenger_with_managers: B):
     with pytest.raises(NotImplementedError, match='No send_messages'):
-        messenger_with_managers.start_process()
+        messenger_with_managers.start_process(
+            subject='test',
+            message='test'
+        )
 
 
 def test_excel_messenger(excel_test_csv_path):

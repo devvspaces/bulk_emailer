@@ -93,11 +93,11 @@ class BaseMessenger:
             message = message.replace(replace_key, value)
         return message
 
-    def start_process(self) -> None:
+    def start_process(self, subject: str, message: str, **kwargs) -> None:
         self.__manager.run_checks()
-        return self.send_messages()
+        return self.send_messages(subject, message, **kwargs)
 
-    def send_messages(self) -> None:
+    def send_messages(self, subject: str, message: str, **kwargs) -> None:
         raise NotImplementedError('No send_messages \
 method implemented')
 
