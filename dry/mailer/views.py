@@ -1,4 +1,8 @@
+import os
+import traceback
+from django.shortcuts import redirect
 from django.views.generic import TemplateView
+from django.contrib import messages
 
 from .forms import MailForm
 
@@ -27,31 +31,46 @@ class Dashboard(TemplateView):
                 'reply_to': reply_to
             }
 
-            message_manager = HtmlMessageManager(
-                template_name='mailer/email_test.html',
-                request=request,
-                context=email_message_context
-            )
+            completed = False
 
-            email_manager = SendGridEmailManager(
-                api_key='',
-                domain='example.com',
-                sender=sender,
-                debug=True,
-                block_send=True,
-                reply_email=reply_to
-            )
+            try:
+                message_manager = HtmlMessageManager(
+                    template_name='mailer/email_test.html',
+                    request=request,
+                    context=email_message_context
+                )
 
-            main_message = ExcelMessenger(
-                start=start,
-                stop=stop,
-                file_path=file_path
-            )
-            main_message.set_email_manager(email_manager)
-            main_message.set_message_manager(message_manager)
+                email_manager = SendGridEmailManager(
+                    api_key='',
+                    domain='example.com',
+                    sender=sender,
+                    debug=True,
+                    block_send=True,
+                    reply_email=reply_to
+                )
 
-            main_message.start_process()
+                main_message = ExcelMessenger(
+                    start=start,
+                    stop=stop,
+                    file_path=file_path
+                )
+                main_message.set_email_manager(email_manager)
+                main_message.set_message_manager(message_manager)
+
+                main_message.start_process(
+                    subject=subject,
+                    message=message
+                )
+
+                messages.success(request, 'Messages completely sent')
+                completed = True
+            except Exception as e:
+                messages.warning(request, e)
 
             obj.delete()
+            os.remove(file_path)
+            if completed:
+                return redirect(self.request.get_full_path())
+
         context = self.get_context_data(form=form)
         return self.render_to_response(context)

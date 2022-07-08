@@ -51,8 +51,8 @@ of an Message Manager')
 
 class BaseMessenger:
     def __init__(self, start: int = 0, stop: int = 0) -> None:
-        self.__start = start
-        self.__stop = stop
+        self.__start = start - 1
+        self.__stop = stop - 1
         self.__manager: Type[Managers] = None
         self.set_manager()
         self.run_checks()
@@ -90,7 +90,7 @@ class BaseMessenger:
             data = {}
         for key, value in data.items():
             replace_key = f'_{key}_'
-            message = message.replace(replace_key, value)
+            message = message.replace(replace_key, str(value))
         return message
 
     def start_process(self, subject: str, message: str, **kwargs) -> None:
@@ -125,6 +125,7 @@ class ExcelMessenger(BaseMessenger):
         self.__dataframe: Optional[DataFrame] = None
         super().__init__(**kwargs)
         self.load_data()
+        self.validate_data()
 
     def get_supported_exts(self) -> str:
         keys = list(self.__supported_read_map.keys())
@@ -157,6 +158,13 @@ must be {self.get_supported_exts()}. Current format {ext}")
 
     def get_file_path(self) -> Type[Path]:
         return self.__file_path
+
+    def validate_data(self):
+        row = self.data.shape[0] - 1
+        if self.get_start() > row:
+            raise TypeError('Start index is greater than file max index')
+        if self.get_stop() > row:
+            raise TypeError('Stop index is greater than file max index')
 
     def load_data(self):
         self.__dataframe: Type[DataFrame] = self.__read_map(
@@ -194,5 +202,5 @@ must be {self.get_supported_exts()}. Current format {ext}")
             email = self.get_email_from_data(data)
             self.get_manager().email_manager.send_email(
                 email=email, subject=subject,
-                message=message
+                message=_message
             )

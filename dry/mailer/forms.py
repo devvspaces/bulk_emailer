@@ -8,7 +8,7 @@ from .models import Uploads
 validator_file_ext = FileExtensionValidator(
     allowed_extensions=['xls', 'gz', 'csv', 'xlsx']
 )
-validator_start_min = MinValueValidator(limit_value=0)
+validator_start_min = MinValueValidator(limit_value=1)
 validator_stop_min = MinValueValidator(limit_value=1)
 
 
