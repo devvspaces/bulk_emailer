@@ -51,23 +51,23 @@ of an Message Manager')
 
 class BaseMessenger:
     def __init__(self, start: int = 0, stop: int = 0) -> None:
-        self.__start = start - 1
-        self.__stop = stop - 1
+        self.__start = start
+        self.__stop = stop
         self.__manager: Type[Managers] = None
         self.set_manager()
         self.run_checks()
 
     def get_start(self) -> int:
-        return self.__start
+        return self.__start - 1
 
     def get_stop(self) -> int:
-        return self.__stop
+        return self.__stop - 1
 
     def run_checks(self) -> None:
-        if not isinstance(self.get_start(), int):
+        if not isinstance(self.__start, int):
             raise TypeError('Start value must be an integer')
 
-        if not isinstance(self.get_stop(), int):
+        if not isinstance(self.__stop, int):
             raise TypeError('Stop value must be an integer')
 
         if self.get_start() > self.get_stop():
@@ -192,7 +192,6 @@ must be {self.get_supported_exts()}. Current format {ext}")
     ) -> None:
         if context is None:
             context = {}
-
         for index in self.get_range():
             data = self.get_index_dict(index)
             _message = self.get_message(message, data)
@@ -200,7 +199,8 @@ must be {self.get_supported_exts()}. Current format {ext}")
             _message = self.get_manager()\
                 .message_manager.render_message(context)
             email = self.get_email_from_data(data)
-            self.get_manager().email_manager.send_email(
+            sent = self.get_manager().email_manager.send_email(
                 email=email, subject=subject,
                 message=_message
             )
+            yield sent

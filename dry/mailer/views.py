@@ -1,14 +1,16 @@
 import os
-import traceback
+from django.conf import settings
+
+from django.contrib import messages
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from django.contrib import messages
+from messenger.email_manager import SendGridEmailManager
+from messenger.messager import ExcelMessenger
+from messenger.messsage_manager import HtmlMessageManager
+from utils.general import count_true_in_iter
+from utils.loggers import err_logger, logger  # noqa
 
 from .forms import MailForm
-
-from messenger.email_manager import SendGridEmailManager
-from messenger.messsage_manager import HtmlMessageManager
-from messenger.messager import ExcelMessenger
 
 
 class Dashboard(TemplateView):
@@ -31,6 +33,8 @@ class Dashboard(TemplateView):
                 'reply_to': reply_to
             }
 
+            messages_to_be_sent = stop - start + 1
+
             completed = False
 
             try:
@@ -41,11 +45,11 @@ class Dashboard(TemplateView):
                 )
 
                 email_manager = SendGridEmailManager(
-                    api_key='',
-                    domain='example.com',
+                    api_key=settings.SEND_GRID,
+                    domain=settings.EMAIL_DOMAIN,
                     sender=sender,
-                    debug=True,
-                    block_send=True,
+                    block_send=settings.BLOCK_EMAIL,
+                    debug=settings.DEBUG_EMAIL,
                     reply_email=reply_to
                 )
 
@@ -57,14 +61,20 @@ class Dashboard(TemplateView):
                 main_message.set_email_manager(email_manager)
                 main_message.set_message_manager(message_manager)
 
-                main_message.start_process(
+                sents_fails = main_message.start_process(
                     subject=subject,
                     message=message
                 )
+                sents = count_true_in_iter(sents_fails)
+                fails = messages_to_be_sent - sents
 
-                messages.success(request, 'Messages completely sent')
+                response_message = "{} messages sent, {} messages failed"\
+                    .format(sents, fails)
+
+                messages.success(request, response_message)
                 completed = True
             except Exception as e:
+                err_logger.exception(e)
                 messages.warning(request, e)
 
             obj.delete()

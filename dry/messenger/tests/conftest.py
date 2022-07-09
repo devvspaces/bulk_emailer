@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import Type
-from unittest import TestCase
 
 import pytest
 from messenger.email_manager import BaseEmailManager
@@ -9,11 +8,6 @@ from messenger.messsage_manager import BaseMessageManager, HtmlMessageManager
 
 T = Type[Path]
 M = Type[HtmlMessageManager]
-
-
-@pytest.fixture
-def testcase():
-    return TestCase()
 
 
 @pytest.fixture
@@ -87,16 +81,6 @@ def messenger_with_managers(email_manager, message_manager):
     messenger.set_email_manager(email_manager)
     messenger.set_message_manager(message_manager)
     return messenger
-
-
-@pytest.fixture
-def excel_test_csv_path(settings):
-    return settings.BASE_DIR / 'messenger/tests/files/test_excel.csv'
-
-
-@pytest.fixture
-def excel_test_csv_path_error(settings):
-    return settings.BASE_DIR / 'messenger/tests/files/test_csv_no_email.csv'
 
 
 @pytest.fixture

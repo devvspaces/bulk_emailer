@@ -28,9 +28,10 @@ class MailForm(forms.Form):
         start = cleaned.get('start')
         stop = cleaned.get('stop')
         if (start is not None and stop is not None) and (start > stop):
-            raise ValidationError({
-                'start': 'Start must not be greater that stop'
-            })
+            error = ValidationError(
+                'Start must not be greater that stop',
+                code='start_stop_error')
+            self.add_error('start', error)
 
         return cleaned
 

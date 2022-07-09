@@ -246,8 +246,9 @@ def test_excel_messenger_get_email_from_data_error(excel_messenger_error: G):
 
 
 def test_excel_messenger_send_messages(excel_messenger: G):
-    excel_messenger.send_messages(
+    sents = excel_messenger.send_messages(
         subject='Testing',
         message="""hi i want _first_name_ to know that i _last_name_ love to meet you.
         with _first_name_ presence of _last_name_."""
     )
+    assert 3 == len(list(sents))

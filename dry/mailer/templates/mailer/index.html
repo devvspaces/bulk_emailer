@@ -40,7 +40,7 @@
     
         <div class="mb-4">
             <label for="">Message</label>
-           <textarea required="true" name="message" class="form-control" name="" id="" cols="30" rows="6">{% get form.message.value %}</textarea>
+           <textarea required="true" name="message" class="form-control" id="" cols="30" rows="6" spellcheck="false">{% get form.message.value %}</textarea>
            
            {% for error in form.message.errors %}
             <small class="text-danger">{{ error }}</small>
