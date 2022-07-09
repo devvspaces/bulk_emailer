@@ -1,5 +1,4 @@
 from decouple import config
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -20,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'mailer'
 ]
 
 MIDDLEWARE = [
@@ -96,11 +96,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "assets"),
+    BASE_DIR / "assets",
 ]
 
 
-MEDIA_ROOT = os.path.join(BASE_DIR,"media")
+MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = '/media/'
 
 
@@ -125,13 +125,13 @@ LOGGING = {
         'basic_h': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/debug.log'),
+            'filename': BASE_DIR / 'logs/debug.log',
             'formatter': 'simple',
         },
         'basic_e': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/error.log'),
+            'filename': BASE_DIR / 'logs/error.log',
             'formatter': 'simple',
         },
     },
@@ -142,3 +142,9 @@ LOGGING = {
         }
     }
 }
+
+
+SEND_GRID = config('SEND_GRID')
+EMAIL_DOMAIN = config('EMAIL_DOMAIN')
+BLOCK_EMAIL = config('BLOCK_EMAIL', default=False, cast=bool)
+DEBUG_EMAIL = config('DEBUG_EMAIL', default=False, cast=bool)

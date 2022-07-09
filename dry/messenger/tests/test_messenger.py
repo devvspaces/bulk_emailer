@@ -69,11 +69,11 @@ def test_create_base_manager():
 
 
 def test_base_manager_get_start(messenger: B):
-    assert messenger.get_start() == 10
+    assert messenger.get_start() == 9
 
 
 def test_base_manager_get_stop(messenger: B):
-    assert messenger.get_stop() == 20
+    assert messenger.get_stop() == 19
 
 
 @pytest.mark.parametrize(
@@ -149,10 +149,32 @@ def test_base_manager_start_process_with_managers(messenger_with_managers: B):
 
 def test_excel_messenger(excel_test_csv_path):
     ExcelMessenger(
-        start=10,
-        stop=20,
+        start=0,
+        stop=4,
         file_path=excel_test_csv_path
     )
+
+
+def test_excel_messenger_error_index_start(excel_test_csv_path):
+    with pytest.raises(
+        TypeError, match='Start index is greater than file max index'
+    ):
+        ExcelMessenger(
+            start=7,
+            stop=40,
+            file_path=excel_test_csv_path
+        )
+
+
+def test_excel_messenger_error_index_stop(excel_test_csv_path):
+    with pytest.raises(
+        TypeError, match='Stop index is greater than file max index'
+    ):
+        ExcelMessenger(
+            start=0,
+            stop=40,
+            file_path=excel_test_csv_path
+        )
 
 
 def test_excel_messenger_get_supported_exts(excel_messenger: G):
@@ -195,8 +217,8 @@ def test_excel_messenger_data(excel_messenger: G):
 def test_excel_messenger_get_range(excel_messenger: G):
     computed = excel_messenger.get_range()
     assert isinstance(computed, range)
-    assert computed[0] == 1
-    assert computed[-1] == 3
+    assert computed[0] == 0
+    assert computed[-1] == 2
 
 
 def test_excel_messenger_get_index_dict(excel_messenger: G, testcase: U):
@@ -224,8 +246,9 @@ def test_excel_messenger_get_email_from_data_error(excel_messenger_error: G):
 
 
 def test_excel_messenger_send_messages(excel_messenger: G):
-    excel_messenger.send_messages(
+    sents = excel_messenger.send_messages(
         subject='Testing',
         message="""hi i want _first_name_ to know that i _last_name_ love to meet you.
         with _first_name_ presence of _last_name_."""
     )
+    assert 3 == len(list(sents))

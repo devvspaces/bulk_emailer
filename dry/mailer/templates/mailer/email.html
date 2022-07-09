@@ -1,0 +1,88 @@
+{% load static %}
+{% load mytags %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Email page</title>
+
+    <style type="text/css">
+   		@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+    	body{
+    		background: #f1f1f1;
+    		padding: 1rem;
+    		font-family: 'Montserrat', sans-serif;
+    	}
+
+    	section{
+    		padding: 1.5rem;
+    		background: #fff;
+    		max-width: 400px;
+    		margin: 0 auto;
+    	}
+
+    	#logo{
+    		display: flex;
+    		align-items: center;
+    		font-size: 1.2rem;
+    	}
+    	#logo img{
+    		width: 170px;
+    	}
+
+    	p{
+    		margin: 1rem 0;
+    	}
+
+    	p, a{
+    		font-size: .7rem;
+    		line-height: 1.65;
+    	}
+
+    	a{
+    		text-decoration: none;
+    		font-weight: 600;
+    	}
+
+    	.btn{
+    		padding: .7rem 2rem;
+    		border-radius: .3rem;
+    		background: #1919ff;
+    		color: #fff !important;
+    		font-weight: bold;
+    		display: block;
+    		width: fit-content;
+    		margin: 1rem auto;
+    	}
+
+    	.link-copy{
+    		padding: .5rem;
+    		background: #f1f1f1;
+    	}
+
+    </style>
+</head>
+<body>
+
+	<section>
+		<h1 id="logo"><img src="https://www.lendingfamilytree.com/static/images/logo/logo2.png"></h1>
+
+		<hr>
+
+		<div class="email-body">
+
+			{% block contents %}
+			{% endblock contents %}
+			
+			<hr>
+
+			<a href="mailto:{{ reply_to }}">Contact Us</a>
+		</div>
+
+	</section>
+
+</body>
+</html>

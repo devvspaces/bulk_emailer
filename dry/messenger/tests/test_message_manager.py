@@ -1,14 +1,14 @@
 from pathlib import Path
-from typing import Type
+from typing import TypeVar
 from unittest import TestCase
 import pytest
 from messenger.messsage_manager import BaseMessageManager, HtmlMessageManager
 from django.template.exceptions import TemplateDoesNotExist
 
 
-T = Type[Path]
-M = Type[HtmlMessageManager]
-U = Type[TestCase]
+T = TypeVar('T', bound=Path)
+M = TypeVar('M', bound=HtmlMessageManager)
+U = TypeVar('U', bound=TestCase)
 
 
 def test_base_message_manager():

@@ -4,6 +4,8 @@ Managers for email sending
 
 from typing import Dict, Optional
 import requests
+from utils.loggers import logger
+from utils.general import is_success
 
 
 class BaseEmailManager:
@@ -114,4 +116,8 @@ class SendGridEmailManager(BaseEmailManager):
             json=self.get_post_data(email, subject, message),
             headers=self.get_headers()
         )
-        return response.status_code == 200
+        stat = is_success(response.status_code)
+        if not stat:
+            logger.debug(response.content)
+            logger.debug(response.status_code)
+        return stat

@@ -58,16 +58,16 @@ class BaseMessenger:
         self.run_checks()
 
     def get_start(self) -> int:
-        return self.__start
+        return self.__start - 1
 
     def get_stop(self) -> int:
-        return self.__stop
+        return self.__stop - 1
 
     def run_checks(self) -> None:
-        if not isinstance(self.get_start(), int):
+        if not isinstance(self.__start, int):
             raise TypeError('Start value must be an integer')
 
-        if not isinstance(self.get_stop(), int):
+        if not isinstance(self.__stop, int):
             raise TypeError('Stop value must be an integer')
 
         if self.get_start() > self.get_stop():
@@ -90,7 +90,7 @@ class BaseMessenger:
             data = {}
         for key, value in data.items():
             replace_key = f'_{key}_'
-            message = message.replace(replace_key, value)
+            message = message.replace(replace_key, str(value))
         return message
 
     def start_process(self, subject: str, message: str, **kwargs) -> None:
@@ -109,6 +109,13 @@ class ExcelMessenger(BaseMessenger):
     Files supported: xls, xlsx, csv, csv.gz
     """
     def __init__(self, file_path: str, **kwargs) -> None:
+        """
+        Set up excel manager with file path to the accepted readable file,
+        This sets up the neccessary properties before calling parent class
+        init setup to run checks.
+
+        :param str file_path: path to file
+        """
         self.__file_path = Path(file_path)
         self.__supported_read_map = {
             'xls': pd.read_excel, 'xlsx': pd.read_excel,
@@ -118,6 +125,7 @@ class ExcelMessenger(BaseMessenger):
         self.__dataframe: Optional[DataFrame] = None
         super().__init__(**kwargs)
         self.load_data()
+        self.validate_data()
 
     def get_supported_exts(self) -> str:
         keys = list(self.__supported_read_map.keys())
@@ -151,6 +159,13 @@ must be {self.get_supported_exts()}. Current format {ext}")
     def get_file_path(self) -> Type[Path]:
         return self.__file_path
 
+    def validate_data(self):
+        row = self.data.shape[0] - 1
+        if self.get_start() > row:
+            raise TypeError('Start index is greater than file max index')
+        if self.get_stop() > row:
+            raise TypeError('Stop index is greater than file max index')
+
     def load_data(self):
         self.__dataframe: Type[DataFrame] = self.__read_map(
             self.get_file_path())
@@ -177,7 +192,6 @@ must be {self.get_supported_exts()}. Current format {ext}")
     ) -> None:
         if context is None:
             context = {}
-
         for index in self.get_range():
             data = self.get_index_dict(index)
             _message = self.get_message(message, data)
@@ -185,7 +199,8 @@ must be {self.get_supported_exts()}. Current format {ext}")
             _message = self.get_manager()\
                 .message_manager.render_message(context)
             email = self.get_email_from_data(data)
-            self.get_manager().email_manager.send_email(
+            sent = self.get_manager().email_manager.send_email(
                 email=email, subject=subject,
-                message=message
+                message=_message
             )
+            yield sent

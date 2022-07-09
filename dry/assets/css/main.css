@@ -1,0 +1,19 @@
+.container-fluid{
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+label{
+    margin-bottom: 6px;
+}
+
+form{
+    max-width: 500px;
+    margin: auto;
+}
+
+legend{
+    margin: 1rem 0 2rem 0;
+    font-weight: bold;
+}
+
