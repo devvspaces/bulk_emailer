@@ -38,7 +38,7 @@
     	}
 
     	p, a{
-    		font-size: .7rem;
+    		font-size: .9rem;
     		line-height: 1.65;
     	}
 
@@ -63,12 +63,18 @@
     		background: #f1f1f1;
     	}
 
+		.footer p{
+            margin: 0;
+            font-size: .7rem;
+            font-weight: 500;
+        }
+
     </style>
 </head>
 <body>
 
 	<section>
-		<h1 id="logo"><img src="https://www.lendingfamilytree.com/static/images/logo/logo2.png"></h1>
+		<h1 id="logo"><img src="https://lanisfinconsult.com/wp-content/uploads/2022/04/logo.png"></h1>
 
 		<hr>
 
@@ -78,8 +84,15 @@
 			{% endblock contents %}
 			
 			<hr>
+			
+			<div class="footer">
 
-			<a href="mailto:{{ reply_to }}">Contact Us</a>
+				{% block footer %}
+				
+				{% endblock footer %}
+
+			</div>
+				
 		</div>
 
 	</section>

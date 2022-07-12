@@ -39,7 +39,7 @@ class Dashboard(TemplateView):
 
             try:
                 message_manager = HtmlMessageManager(
-                    template_name='mailer/email_test.html',
+                    template_name='mailer/template1.html',
                     request=request,
                     context=email_message_context
                 )
