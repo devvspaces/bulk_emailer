@@ -142,9 +142,3 @@ LOGGING = {
         }
     }
 }
-
-
-SEND_GRID = config('SEND_GRID')
-EMAIL_DOMAIN = config('EMAIL_DOMAIN')
-BLOCK_EMAIL = config('BLOCK_EMAIL', default=False, cast=bool)
-DEBUG_EMAIL = config('DEBUG_EMAIL', default=False, cast=bool)
