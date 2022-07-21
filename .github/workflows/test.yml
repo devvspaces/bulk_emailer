@@ -44,3 +44,5 @@ jobs:
         cd dry
         mkdir logs
         pytest
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v2
