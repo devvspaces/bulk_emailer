@@ -15,7 +15,7 @@ validator_stop_min = MinValueValidator(limit_value=1)
 class MailForm(forms.Form):
     file = forms.FileField(validators=[validator_file_ext])
     sender = forms.CharField()
-    reply_to = forms.EmailField()
+    reply_to = forms.EmailField(required=False)
     subject = forms.CharField()
     message = forms.CharField(widget=forms.Textarea)
     start = forms.IntegerField(validators=[validator_start_min])

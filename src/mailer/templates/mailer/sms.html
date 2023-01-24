@@ -1,0 +1,82 @@
+{% extends 'mailer/base.html' %}
+{% load mytags %}
+
+
+{% block content %}
+
+
+<div class="container-fluid py-5">
+    <form action="" method="post" enctype="multipart/form-data">
+
+        <legend>Send SMS</legend>
+
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="">Phone number</label>
+            <input required="true" value="{% if form.sender.value %}{% get form.sender.value %}{% else %}+13203730535{% endif %}" name="sender" type="text" class="form-control" placeholder="Phone number provided by sms provider">
+            
+            {% for error in form.sender.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
+                
+        </div>
+    
+        <div class="mb-4">
+            <label for="">Subject</label>
+            <input required="true" value="{% get form.subject.value %}" name="subject" type="text" class="form-control">
+            
+            {% for error in form.subject.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
+                
+        </div>
+    
+        <div class="mb-4">
+            <label for="">Message</label>
+           <textarea required="true" name="message" class="form-control" id="" cols="30" rows="6" spellcheck="false">{% get form.message.value %}</textarea>
+           
+           {% for error in form.message.errors %}
+            <small class="text-danger">{{ error }}</small>
+           {% endfor %}
+            
+        </div>
+    
+        <div class="mb-4 d-flex align-items-center">
+            <div>
+                <label for="">Start</label>
+                <input required="true" value="{% get form.start.value %}" name="start" type="number" class="form-control" value="0">
+                
+                {% for error in form.start.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+                    
+            </div>
+            <div class="ms-auto">
+                <label for="">End</label>
+                <input required="true" value="{% get form.stop.value %}" name="stop" type="number" class="form-control" value="1">
+                
+                {% for error in form.stop.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+                    
+            </div>
+        </div>
+    
+        <div class="mb-4">
+            <label for="">File: <span id="file_name"></span></label>
+            <input required="true" name="file" type="file" class="form-control">
+            
+            {% for error in form.file.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
+                
+        </div>
+    
+        <button class="btn btn-outline-primary mt-4">Send</button>
+    
+    </form>
+</div>
+
+
+{% endblock content %}
+    

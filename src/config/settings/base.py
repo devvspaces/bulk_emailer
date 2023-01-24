@@ -32,7 +32,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'dry.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -50,7 +50,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'dry.wsgi.base.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 DATABASES = {
@@ -142,3 +142,10 @@ LOGGING = {
         }
     }
 }
+
+
+RECEIPIENT_EMAIL_KEY = 'email'
+RECEIPIENT_SMS_KEY = 'phone'
+
+TWILIO_SID = config('TWILIO_SID')
+TWILIO_TOKEN = config('TWILIO_TOKEN')

@@ -1,0 +1,47 @@
+body {
+    background-color: var(--bs-dark);
+}
+
+.navbar{
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    background-color: #131518 !important;
+    box-shadow: 0 0 5px var(--bs-secondary);
+}
+
+.navbar-nav {
+    gap: 1rem;
+}
+
+.container-fluid{
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+label{
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+form{
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+legend{
+    margin: 1rem 0 2rem 0;
+    font-weight: bold;
+}
+
+form button.btn {
+    margin-top: 3rem !important;
+    display: block;
+    padding: 1.1rem 2rem;
+    width: 100%;
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+

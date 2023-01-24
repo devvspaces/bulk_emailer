@@ -8,6 +8,9 @@
 <div class="container-fluid py-5">
     <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+
+        <legend>Send Email</legend>
+
         <div class="mb-4">
             <label for="">Sender</label>
             <input required="true" value="{% get form.sender.value %}" name="sender" type="text" class="form-control" placeholder="Enter sender prefix i.e info, admin, contact e.t.c">
@@ -79,7 +82,7 @@
                 
         </div>
     
-        <button class="btn btn-primary mt-4">Send</button>
+        <button class="btn btn-outline-primary mt-4">Send</button>
     
     </form>
 </div>
