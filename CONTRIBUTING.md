@@ -28,6 +28,19 @@
 
 * Ask any question about how to use Bulk Emailer, check out the [discussions](https://github.com/devvspaces/bulk_emailer/discussions/) or [create one](https://github.com/devvspaces/bulk_emailer/discussions/new)
 
+#### **How to contribute to this project**
+
+* Fork the repository to your GitHub account
+* Clone the repository to your local machine using `git clone reponame`
+* Install the dependencies using `pip install -r requirements.txt`
+* Create a new branch using `git checkout -b branchname`
+* Make your changes and commit them using `git commit -m "commit message"`
+* Push the changes to your forked repository using `git push origin branchname`
+* Create a pull request to the `main` branch of the original repository
+* Wait for the maintainers to review your pull request
+* Once the pull request is approved and merged, you will be notified via email
+* Congratulations! You have successfully contributed to Bulk Emailer
+
 Bulk emailer is a volunteer effort. We encourage you to pitch in and join the team!
 
 Thanks! :heart: :heart: :heart:
