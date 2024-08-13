@@ -4,9 +4,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='test')
 
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -37,7 +37,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -124,14 +124,14 @@ LOGGING = {
     'handlers': {
         'basic_h': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/debug.log',
+            'class': 'logging.StreamHandler',
+            # 'filename': BASE_DIR / 'logs/debug.log',
             'formatter': 'simple',
         },
         'basic_e': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/error.log',
+            'class': 'logging.StreamHandler',
+            # 'filename': BASE_DIR / 'logs/error.log',
             'formatter': 'simple',
         },
     },
@@ -147,5 +147,5 @@ LOGGING = {
 RECEIPIENT_EMAIL_KEY = 'email'
 RECEIPIENT_SMS_KEY = 'phone'
 
-TWILIO_SID = config('TWILIO_SID')
-TWILIO_TOKEN = config('TWILIO_TOKEN')
+TWILIO_SID = config('TWILIO_SID', default='test')
+TWILIO_TOKEN = config('TWILIO_TOKEN', default='test')
