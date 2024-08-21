@@ -89,7 +89,7 @@ class BaseMessenger:
         :rtype: str
         """
         if self.__recipient_field is None:
-            return self.get_manager().sender_manager.get_receipient_field()
+            return self.get_manager().sender_manager.get_recipient_field()
         return self.__recipient_field
 
     def run_checks(self) -> None:
@@ -313,7 +313,7 @@ must be {self.get_supported_exts()}. Current format {ext}")
         """
         return self.data.loc[index].to_dict()
 
-    def get_receipient_from_data(self, data: dict) -> str:
+    def get_recipient_from_data(self, data: dict) -> str:
         key = self.get_recipient_field()
         value = data.get(key)
         if value is None:
@@ -332,9 +332,9 @@ must be {self.get_supported_exts()}. Current format {ext}")
             context['message'] = _message
             _message = self.get_manager()\
                 .message_manager.render_message(context)
-            receipient = self.get_receipient_from_data(data)
+            recipient = self.get_recipient_from_data(data)
             sent = self.get_manager().sender_manager.send_message(
                 _message, subject=subject,
-                receipient=receipient
+                recipient=recipient
             )
             yield sent

@@ -125,14 +125,14 @@ LOGGING = {
     'handlers': {
         'basic_h': {
             'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            # 'filename': BASE_DIR / 'logs/debug.log',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/debug.log',
             'formatter': 'simple',
         },
         'basic_e': {
             'level': 'WARNING',
-            'class': 'logging.StreamHandler',
-            # 'filename': BASE_DIR / 'logs/error.log',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/error.log',
             'formatter': 'simple',
         },
     },

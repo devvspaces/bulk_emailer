@@ -14,8 +14,7 @@ class TestManager(SimpleTestCase):
 
     def setUp(self) -> None:
         manager = BaseEmailManager(
-            domain='example.com',
-            sender='test',
+            sender='test@example.com',
         )
         self.manager = manager
 
@@ -108,8 +107,7 @@ class TestSendGridManager(SimpleTestCase):
 
     def setUp(self) -> None:
         manager = SendGridEmailManager(
-            domain='example.com',
-            sender='test',
+            sender='test@example.com',
             api_key='test_key',
             reply_email='noreply@test.io'
         )
@@ -154,15 +152,16 @@ class TestSendGridManager(SimpleTestCase):
 
     @pytest.mark.xfail
     def test_send_email(self):
-        computed = self.manager.send_email(
-            email='me@gmail.com',
+        computed = self.manager.send(
+            recipient='me@gmail.com',
             subject='testings',
             message='hello world',
         )
         self.assertFalse(computed)
 
     def test_send_email_fail_silently(self):
-        computed = self.manager.send_email(
+        computed = self.manager.send(
+            recipient='me@gmail.com',
             subject='testings',
             message='hello world',
         )
@@ -170,7 +169,7 @@ class TestSendGridManager(SimpleTestCase):
 
     def test_send_email_not_fail_silently(self):
         with self.assertRaises(Exception):
-            self.manager.send_email(
+            self.manager.send(
                 subject='testings',
                 message='hello world',
                 fail=False

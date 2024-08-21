@@ -19,7 +19,7 @@ class BaseEmailManager(BaseSenderManager):
         self.__reply_email = reply_email
         super().__init__(*args, **kwargs)
 
-    def get_receipient_field(self) -> str:
+    def get_recipient_field(self) -> str:
         return settings.RECEIPIENT_EMAIL_KEY
 
     def get_reply_email(self) -> str:
@@ -120,11 +120,11 @@ class SendGridEmailManager(BaseEmailManager):
         return 'https://api.sendgrid.com/v3/mail/send'
 
     def send(
-        self, receipient: str, subject: str, message: str, **kwargs
+        self, recipient: str, subject: str, message: str, **kwargs
     ):
         response = requests.post(
             url=self.get_post_url(),
-            json=self.get_post_data(receipient, subject, message),
+            json=self.get_post_data(recipient, subject, message),
             headers=self.get_headers()
         )
         stat = is_success(response.status_code)
@@ -219,12 +219,12 @@ class ZeptoEmailManager(BaseEmailManager):
         return 'https://api.zeptomail.com/v1.1/email'
 
     def send(
-        self, receipient: str, subject: str, message: str, **kwargs
+        self, recipient: str, subject: str, message: str, **kwargs
     ):
         print(self.get_headers())
         response = requests.post(
             url=self.get_post_url(),
-            json=self.get_post_data(receipient, subject, message),
+            json=self.get_post_data(recipient, subject, message),
             headers=self.get_headers()
         )
         print(response.json())

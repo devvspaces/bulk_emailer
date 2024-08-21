@@ -16,18 +16,18 @@ G = Type[ExcelMessenger]
 U = Type[TestCase]
 
 
-def test_set_email_manager(managers: M, email_manager: E):
-    managers.set_email_manager(email_manager)
-    assert email_manager is managers.email_manager
+def test_set_sender_manager(managers: M, sender_manager: E):
+    managers.set_sender_manager(sender_manager)
+    assert sender_manager is managers.sender_manager
 
 
-def test_set_email_manager_error(managers: M):
+def test_set_sender_manager_error(managers: M):
     with pytest.raises(TypeError):
-        managers.set_email_manager('wrong type')
+        managers.set_sender_manager('wrong type')
 
 
-def test_email_manager(managers: M):
-    assert managers.email_manager is None
+def test_sender_manager(managers: M):
+    assert managers.sender_manager is None
 
 
 def test_set_message_manager(managers: M, message_manager: T):
@@ -52,12 +52,12 @@ def test_run_checks_email(managers: M):
         managers.run_checks()
 
 
-def test_run_checks_message(managers: M, email_manager: E):
+def test_run_checks_message(managers: M, sender_manager: E):
     """
     raise error for message manager check
     """
     with pytest.raises(NotImplementedError):
-        managers.set_email_manager(email_manager)
+        managers.set_sender_manager(sender_manager)
         managers.run_checks()
 
 
@@ -100,8 +100,8 @@ def test_base_manager_set_message_manager(messenger: B, message_manager):
     messenger.set_message_manager(message_manager)
 
 
-def test_base_manager_set_email_manager(messenger: B, email_manager):
-    messenger.set_email_manager(email_manager)
+def test_base_manager_set_sender_manager(messenger: B, sender_manager):
+    messenger.set_sender_manager(sender_manager)
 
 
 def test_base_manager_get_message_without_data(messenger: B):
