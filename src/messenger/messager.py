@@ -3,6 +3,7 @@ Module for email messenger
 """
 
 from pathlib import Path
+import time
 from typing import Optional, Sequence, Type
 
 import pandas as pd
@@ -322,7 +323,7 @@ must be {self.get_supported_exts()}. Current format {ext}")
     def send_messages(
         self, subject: str, message: str,
         context: dict = None
-    ) -> None:
+    ):
         if context is None:
             context = {}
         for index in self.get_range():

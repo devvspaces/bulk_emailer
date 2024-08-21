@@ -1,3 +1,4 @@
 {
-    "autoDocstring.docstringFormat": "sphinx"
+    "autoDocstring.docstringFormat": "sphinx",
+    "editor.tabSize": 4
 }

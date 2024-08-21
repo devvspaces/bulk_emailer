@@ -221,11 +221,13 @@ class ZeptoEmailManager(BaseEmailManager):
     def send(
         self, receipient: str, subject: str, message: str, **kwargs
     ):
+        print(self.get_headers())
         response = requests.post(
             url=self.get_post_url(),
             json=self.get_post_data(receipient, subject, message),
             headers=self.get_headers()
         )
+        print(response.json())
         stat = is_success(response.status_code)
         if not stat and self.get_debug():
             logger.debug(response.content)

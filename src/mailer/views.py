@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from messenger.email_manager import SendGridEmailManager
+from messenger.email_manager import ZeptoEmailManager
 from messenger.sms_manager import SmsManager
 from messenger.messager import ExcelMessenger
 from messenger.messsage_manager import HtmlMessageManager
@@ -61,12 +61,12 @@ class Dashboard(TemplateView):
         :param data: form cleaned data
         :type data: dict
         :return: sender manager
-        :rtype: SendGridEmailManager
+        :rtype: Email manager
         """
         sender = data.get('sender')
         reply_to = data.get('reply_to')
-        return SendGridEmailManager(
-            api_key=settings.SEND_GRID,
+        return ZeptoEmailManager(
+            api_key=settings.ZEPTOTOKEN,
             sender=f"{sender}@{settings.EMAIL_DOMAIN}",
             block_send=settings.BLOCK_EMAIL,
             debug=settings.DEBUG_EMAIL,
@@ -120,6 +120,9 @@ class Dashboard(TemplateView):
 
             try:
                 messenger = self.create_messenger(file_path, form.cleaned_data)
+
+                message = message.replace('\n', '<br>')
+                print(message)
 
                 sents_fails = messenger.start_process(
                     subject=subject,
