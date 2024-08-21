@@ -2,7 +2,7 @@ body {
     background-color: var(--bs-dark);
 }
 
-.navbar{
+.navbar {
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
     background-color: #131518 !important;
@@ -13,25 +13,25 @@ body {
     gap: 1rem;
 }
 
-.container-fluid{
+.container-fluid {
     max-width: 900px;
     margin: 0 auto;
 }
 
-label{
+label {
     margin-bottom: 6px;
     font-weight: 500;
 }
 
-form{
-    max-width: 500px;
+form {
+    max-width: 900px;
     margin: auto;
     background: white;
     padding: 2rem;
     border-radius: 10px;
 }
 
-legend{
+legend {
     margin: 1rem 0 2rem 0;
     font-weight: bold;
 }
@@ -44,4 +44,3 @@ form button.btn {
     font-weight: 500;
     font-size: 1.1rem;
 }
-

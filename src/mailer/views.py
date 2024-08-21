@@ -1,7 +1,11 @@
+import json
 import os
+from typing import Any
 from django.conf import settings
 
 from django.contrib import messages
+from django.http import HttpRequest
+from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 from messenger.email_manager import ZeptoEmailManager
@@ -25,6 +29,11 @@ class Dashboard(TemplateView):
         'page': 'home',
     }
     form_class = MailForm
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['form'] = MailForm()
+        return context
 
     def get_message_context(self, data: dict):
         """
@@ -89,7 +98,8 @@ class Dashboard(TemplateView):
         messenger = ExcelMessenger(
             start=start,
             stop=stop,
-            file_path=file_path
+            file_path=file_path,
+            recipient_field=data.get('email_key')
         )
         messenger.set_sender_manager(
             self.create_sender_manager(data)
@@ -109,7 +119,7 @@ class Dashboard(TemplateView):
             obj = form.save()
 
             subject = form.cleaned_data.get('subject')
-            message = form.cleaned_data.get('message')
+            message = json.loads(form.cleaned_data.get('content')).get('html')
             start = form.cleaned_data.get('start')
             stop = form.cleaned_data.get('stop')
 
@@ -120,9 +130,6 @@ class Dashboard(TemplateView):
 
             try:
                 messenger = self.create_messenger(file_path, form.cleaned_data)
-
-                message = message.replace('\n', '<br>')
-                print(message)
 
                 sents_fails = messenger.start_process(
                     subject=subject,

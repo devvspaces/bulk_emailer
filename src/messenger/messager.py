@@ -54,12 +54,12 @@ of an Message Manager')
 class BaseMessenger:
     def __init__(
         self, start: int = 0, stop: int = 0,
-        receipeint_field: str = None
+        recipient_field: str = None
     ) -> None:
         self.__start = start
         self.__stop = stop
         self.__manager: Type[Managers] = None
-        self.__receipeint_field = receipeint_field
+        self.__recipient_field = recipient_field
         self.set_manager()
         self.run_checks()
 
@@ -81,16 +81,16 @@ class BaseMessenger:
         """
         return self.__stop - 1
 
-    def get_receipeint_field(self) -> str:
+    def get_recipient_field(self) -> str:
         """
         Get receipeint field key
 
         :return: receipeint field key
         :rtype: str
         """
-        if self.__receipeint_field is None:
+        if self.__recipient_field is None:
             return self.get_manager().sender_manager.get_receipient_field()
-        return self.__receipeint_field
+        return self.__recipient_field
 
     def run_checks(self) -> None:
         if not isinstance(self.__start, int):
@@ -314,7 +314,7 @@ must be {self.get_supported_exts()}. Current format {ext}")
         return self.data.loc[index].to_dict()
 
     def get_receipient_from_data(self, data: dict) -> str:
-        key = self.get_receipeint_field()
+        key = self.get_recipient_field()
         value = data.get(key)
         if value is None:
             raise TypeError(f'{key.capitalize()} column not in file')

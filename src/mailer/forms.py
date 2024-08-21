@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ValidationError
 from django.core.validators import FileExtensionValidator, MinValueValidator
+from django_quill.forms import QuillFormField
 
 from .models import Uploads
 
@@ -17,7 +18,8 @@ class MailForm(forms.Form):
     sender = forms.CharField()
     reply_to = forms.EmailField(required=False)
     subject = forms.CharField()
-    message = forms.CharField(widget=forms.Textarea)
+    content = QuillFormField()
+    email_key = forms.CharField()
     start = forms.IntegerField(validators=[validator_start_min])
     stop = forms.IntegerField(validators=[validator_stop_min])
 
