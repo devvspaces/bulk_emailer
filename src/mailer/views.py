@@ -152,6 +152,7 @@ class Dashboard(TemplateView):
             if completed:
                 return redirect(self.request.get_full_path())
 
+        print(form.errors)
         context = self.get_context_data(form=form)
         return self.render_to_response(context)
 
