@@ -36,17 +36,17 @@ class SmsManager(BaseSenderManager):
         super().__init__(*args, **kwargs)
         self.client = Client(sid, token)
 
-    def get_receipient_field(self) -> str:
+    def get_recipient_field(self) -> str:
         return settings.RECEIPIENT_SMS_KEY
 
     def send(
-        self, receipient: str, message: str, **kwargs
+        self, recipient: str, message: str, **kwargs
     ) -> bool:
         """
-        Send SMS message to receipient using Twilio
+        Send SMS message to recipient using Twilio
 
-        :param receipient: receipient phone number (e.g. +1234567890)
-        :type receipient: str
+        :param recipient: recipient phone number (e.g. +1234567890)
+        :type recipient: str
         :param message: message to send
         :type message: str
         :return: success of sending message
@@ -55,6 +55,6 @@ class SmsManager(BaseSenderManager):
         message = self.client.messages.create(
             body=message,
             from_=self.get_sender(),
-            to=receipient
+            to=recipient
         )
         return True

@@ -19,7 +19,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'mailer'
+    'mailer',
+    'django_quill',
 ]
 
 MIDDLEWARE = [
@@ -124,14 +125,14 @@ LOGGING = {
     'handlers': {
         'basic_h': {
             'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            # 'filename': BASE_DIR / 'logs/debug.log',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/debug.log',
             'formatter': 'simple',
         },
         'basic_e': {
             'level': 'WARNING',
-            'class': 'logging.StreamHandler',
-            # 'filename': BASE_DIR / 'logs/error.log',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/error.log',
             'formatter': 'simple',
         },
     },
@@ -149,3 +150,27 @@ RECEIPIENT_SMS_KEY = 'phone'
 
 TWILIO_SID = config('TWILIO_SID', default='test')
 TWILIO_TOKEN = config('TWILIO_TOKEN', default='test')
+
+
+QUILL_CONFIGS = {
+    'default':{
+        'theme': 'snow',
+        'modules': {
+            'syntax': True,
+            'toolbar': [
+                [
+                    {'font': []},
+                    {'header': [1, 2, 3, 4, 5, 6, False]},
+                    {'align': []},
+                    'bold', 'italic', 'underline', 'strike', 'blockquote',
+                    {'color': []},
+                    {'background': []},
+                ],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                ['code-block', 'link'],
+                ['clean'],
+            ]
+        }
+    }
+}
+

@@ -14,11 +14,11 @@ class BaseSenderManager:
         self.__debug = debug
         self.__block_send = block_send
 
-    def get_receipient_field(self) -> str:
+    def get_recipient_field(self) -> str:
         """
-        Get receipient key
+        Get recipient key
         """
-        raise NotImplementedError('No receipient key')
+        raise NotImplementedError('No recipient key')
 
     def set_debug(self) -> None:
         self.__debug = True
