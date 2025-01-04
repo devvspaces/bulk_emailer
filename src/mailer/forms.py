@@ -22,6 +22,7 @@ class MailForm(forms.Form):
     email_key = forms.CharField()
     start = forms.IntegerField(validators=[validator_start_min])
     stop = forms.IntegerField(validators=[validator_stop_min])
+    attachments = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False)
 
     def clean(self):
         cleaned = super().clean()

@@ -8,8 +8,9 @@ const previewCSVData = async (dataurl) => {
   console.log(d.columns);
 
   const email_key = document.getElementById("email_key");
-  // TODO: delete previous options
-  
+  // delete previous options
+  email_key.options.length = 0;
+
   d.columns.map((col) => {
     email_key.options[email_key.options.length] = new Option(col, col);
   });

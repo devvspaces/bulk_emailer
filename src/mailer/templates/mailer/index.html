@@ -41,10 +41,19 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="">File: <span id="file_name"></span></label>
+                    <label for="csv">File: <span id="file_name"></span></label>
                     <input id="csv" required="true" name="file" type="file" class="form-control" accept=".csv">
 
                     {% for error in form.file.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="attachments">Attachments</label>
+                    <input id="attachments" required="true" name="attachments" type="file" class="form-control" multiple>
+
+                    {% for error in form.attachments.errors %}
                     <small class="text-danger">{{ error }}</small>
                     {% endfor %}
                 </div>

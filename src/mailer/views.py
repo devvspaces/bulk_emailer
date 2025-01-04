@@ -123,6 +123,15 @@ class Dashboard(TemplateView):
             start = form.cleaned_data.get('start')
             stop = form.cleaned_data.get('stop')
 
+            attachments = []
+            files = request.FILES.getlist('attachments')
+            for file in files:
+                attachments.append({
+                    'filename': file.name,
+                    'data': file.read(),
+                    "mime_type": file.content_type
+                })
+
             file_path = obj.file.path
             messages_to_be_sent = stop - start + 1
 
@@ -147,6 +156,7 @@ class Dashboard(TemplateView):
                 err_logger.exception(e)
                 messages.warning(request, e)
 
+            raise Exception(response_message)
             obj.delete()
             os.remove(file_path)
             if completed:

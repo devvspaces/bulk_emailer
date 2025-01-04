@@ -1,4 +1,7 @@
 {
     "autoDocstring.docstringFormat": "sphinx",
-    "editor.tabSize": 4
+    "editor.tabSize": 4,
+    "cSpell.words": [
+        "sents"
+    ]
 }

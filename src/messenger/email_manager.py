@@ -6,16 +6,15 @@ from typing import Dict, overload
 
 import requests
 from django.conf import settings
-from utils.general import is_success
+from messenger.smtp import EmailConnection, get_connection
+from utils.general import bytes_to_base64_str, is_success
 from utils.loggers import logger
 
 from .sender_manager import BaseSenderManager
 
 
 class BaseEmailManager(BaseSenderManager):
-    def __init__(
-        self, reply_email: str = None, *args, **kwargs
-    ) -> None:
+    def __init__(self, reply_email: str = None, *args, **kwargs) -> None:
         self.__reply_email = reply_email
         super().__init__(*args, **kwargs)
 
@@ -35,17 +34,12 @@ class BaseEmailManager(BaseSenderManager):
 
 
 class SendGridEmailManager(BaseEmailManager):
-
     @overload
     def __init__(
-        self, api_key: str, sender: str, debug: bool,
-        block_send: bool, reply_email: str
-    ) -> None:
-        ...
+        self, api_key: str, sender: str, debug: bool, block_send: bool, reply_email: str
+    ) -> None: ...
 
-    def __init__(
-        self, api_key: str, *args, **kwargs
-    ) -> None:
+    def __init__(self, api_key: str, *args, **kwargs) -> None:
         """
         SendGrid email manager
 
@@ -72,9 +66,7 @@ class SendGridEmailManager(BaseEmailManager):
         :return: headers
         :rtype: dict
         """
-        headers = {
-            'Authorization': f'Bearer {self.get_api_key()}'
-        }
+        headers = {"Authorization": f"Bearer {self.get_api_key()}"}
         return headers
 
     def get_headers(self) -> dict:
@@ -86,9 +78,7 @@ class SendGridEmailManager(BaseEmailManager):
         """
         return self.__headers
 
-    def get_post_data(
-        self, email: str, subject: str, message: str
-    ) -> Dict[str, str]:
+    def get_post_data(self, email: str, subject: str, message: str) -> Dict[str, str]:
         """
         Get post data for sendgrid
 
@@ -106,7 +96,7 @@ class SendGridEmailManager(BaseEmailManager):
             "from": {"email": self.get_sender()},
             "reply_to": {"email": self.get_reply_email()},
             "subject": subject,
-            "content": [{"type": "text/html", "value": message}]
+            "content": [{"type": "text/html", "value": message}],
         }
         return data
 
@@ -117,15 +107,13 @@ class SendGridEmailManager(BaseEmailManager):
         :return: post url
         :rtype: str
         """
-        return 'https://api.sendgrid.com/v3/mail/send'
+        return "https://api.sendgrid.com/v3/mail/send"
 
-    def send(
-        self, recipient: str, subject: str, message: str, **kwargs
-    ):
+    def send(self, recipient: str, subject: str, message: str, **kwargs):
         response = requests.post(
             url=self.get_post_url(),
             json=self.get_post_data(recipient, subject, message),
-            headers=self.get_headers()
+            headers=self.get_headers(),
         )
         stat = is_success(response.status_code)
         if not stat and self.get_debug():
@@ -135,17 +123,12 @@ class SendGridEmailManager(BaseEmailManager):
 
 
 class ZeptoEmailManager(BaseEmailManager):
-
     @overload
     def __init__(
-        self, api_key: str, sender: str, debug: bool,
-        block_send: bool, reply_email: str
-    ) -> None:
-        ...
+        self, api_key: str, sender: str, debug: bool, block_send: bool, reply_email: str
+    ) -> None: ...
 
-    def __init__(
-        self, api_key: str, *args, **kwargs
-    ) -> None:
+    def __init__(self, api_key: str, *args, **kwargs) -> None:
         """
         Zepto email manager
 
@@ -172,9 +155,7 @@ class ZeptoEmailManager(BaseEmailManager):
         :return: headers
         :rtype: dict
         """
-        headers = {
-            'Authorization': self.get_api_key()
-        }
+        headers = {"Authorization": self.get_api_key()}
         return headers
 
     def get_headers(self) -> dict:
@@ -187,7 +168,7 @@ class ZeptoEmailManager(BaseEmailManager):
         return self.__headers
 
     def get_post_data(
-        self, email: str, subject: str, message: str
+        self, email: str, subject: str, message: str, **kwargs
     ) -> Dict[str, str]:
         """
         Get post data for zeptomail
@@ -201,11 +182,20 @@ class ZeptoEmailManager(BaseEmailManager):
         :return: post data
         :rtype: Dict[str, str]
         """
+        attachments = kwargs.get("attachments", [])
         data = {
             "to": [{"email_address": {"address": email}}],
             "from": {"address": self.get_sender()},
             "subject": subject,
-            "htmlbody": message
+            "htmlbody": message,
+            "attachments": [
+                {
+                    "name": _["filename"],
+                    "content": bytes_to_base64_str(_["data"]),
+                    "mime_type": _["mime_type"],
+                }
+                for _ in attachments
+            ],
         }
         return data
 
@@ -216,20 +206,81 @@ class ZeptoEmailManager(BaseEmailManager):
         :return: post url
         :rtype: str
         """
-        return 'https://api.zeptomail.com/v1.1/email'
+        return "https://api.zeptomail.com/v1.1/email"
 
-    def send(
-        self, recipient: str, subject: str, message: str, **kwargs
-    ):
-        print(self.get_headers())
+    def send(self, recipient: str, subject: str, message: str, **kwargs):
         response = requests.post(
             url=self.get_post_url(),
-            json=self.get_post_data(recipient, subject, message),
-            headers=self.get_headers()
+            json=self.get_post_data(recipient, subject, message, **kwargs),
+            headers=self.get_headers(),
         )
-        print(response.json())
         stat = is_success(response.status_code)
         if not stat and self.get_debug():
             logger.debug(response.content)
             logger.debug(response.status_code)
         return stat
+
+
+class SmtpEmailManager(BaseEmailManager):
+    @overload
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        sender: str,
+        debug: bool,
+        block_send: bool,
+        reply_email: str,
+    ) -> None: ...
+
+    def __init__(
+        self, host: str, port: int, username: str, password: str, *args, **kwargs
+    ) -> None:
+        """
+        SMTP email manager
+
+        :param host: host
+        :type host: str
+        :param port: port
+        :type port: int
+        :param username: username
+        :type username: str
+        :param password: password
+        :type password: str
+        """
+        super().__init__(*args, **kwargs)
+        self.__host = host
+        self.__port = port
+        self.__username = username
+        self.__password = password
+
+    @property
+    def conn(self) -> EmailConnection:
+        """
+        Get SMTP connection
+        """
+        return get_connection(
+            host=self.__host,
+            port=self.__port,
+            username=self.__username,
+            password=self.__password,
+        )
+
+    def send(
+        self, recipient: str, subject: str, message: str, attachments=None, **kwargs
+    ):
+        try:
+            self.conn.send(
+                subject=subject,
+                recipient=recipient,
+                text=message,
+                sender=self.get_sender(),
+                html=message,
+                attachments=attachments,
+            )
+        except Exception as e:
+            logger.exception(e)
+            return False
+        return True

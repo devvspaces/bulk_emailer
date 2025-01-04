@@ -1,6 +1,7 @@
 """General python utilities to be used in project"""
 
 
+import base64
 from typing import Any, Iterable
 
 
@@ -18,3 +19,6 @@ def count_true_in_iter(iter):
 
 def is_success(code):
     return 200 <= code <= 299
+
+def bytes_to_base64_str(data: bytes) -> str:
+    return base64.b64encode(data).decode('utf-8')

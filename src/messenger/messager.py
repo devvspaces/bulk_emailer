@@ -322,7 +322,7 @@ must be {self.get_supported_exts()}. Current format {ext}")
 
     def send_messages(
         self, subject: str, message: str,
-        context: dict = None
+        context: dict = None, **kwargs
     ):
         if context is None:
             context = {}
@@ -335,6 +335,7 @@ must be {self.get_supported_exts()}. Current format {ext}")
             recipient = self.get_recipient_from_data(data)
             sent = self.get_manager().sender_manager.send_message(
                 _message, subject=subject,
-                recipient=recipient
+                recipient=recipient,
+                **kwargs
             )
             yield sent
