@@ -1,0 +1,168 @@
+{% extends 'mailer/base.html' %}
+{% load mytags %}
+
+{% block content %}
+
+<div class="container-fluid py-5">
+    <div class="box-container">
+        <legend>Create Email Manager</legend>
+
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label for="">Label</label>
+                            {{ form.label }}
+                            {% for error in form.label.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <label for="">Manager Type</label>
+                            {{ form.mail_manager }}
+                            {% for error in form.mail_manager.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="manager-forms">
+                        {% for mform in forms %}
+                        <div id="{{ mform.manager }}" class="manager-form" style="display: none;">
+                            {{ mform.as_p }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+    
+            <button class="btn btn-outline-primary mb-4">Create</button>
+        </form>
+    
+        <div class="mb-4">
+            <h3>Managers</h3>
+            <table class="table table-responsive">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Label</th>
+                        <th scope="col">Manager</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    {% for email_manager in email_managers %}
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>{{ email_manager.label }}</td>
+                        <td>{{ email_manager.get_mail_manager_display }}</td>
+                        <td>
+                            <div>
+                                <button data-config="{{ email_manager.config_json }}" type="button" class="btn btn-outline-primary btn-sm view-manager"  data-bs-toggle="modal" data-bs-target="#exampleModal">View</button>
+                                <!-- <button class="btn btn-outline-danger btn-sm">Delete</button> -->
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                        
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{ managers|json_script:"managers_list" }}
+  
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Manager Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="manager-details">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}
+
+
+{% block extra_js %}
+
+<script>
+
+    const managers = JSON.parse(document.getElementById('managers_list').textContent).managers;
+    const mail_manager = document.getElementById("id_mail_manager");
+
+    if (mail_manager) {
+        mail_manager.onchange = (e) => {
+            selectManagerForm(e.target.value);
+        }
+        if (mail_manager.value) {
+            selectManagerForm(mail_manager.value);
+        }
+    }
+
+    function getManagerFields(manager) {
+        let managerBox = document.getElementById(manager);
+        let inputs = managerBox.querySelectorAll('input');
+        let selects = managerBox.querySelectorAll('select');
+        let textareas = managerBox.querySelectorAll('textarea');
+        let fields = [...inputs, ...selects, ...textareas];
+        return fields;
+    }
+
+    function resetManagerForms() {
+        for (let manager of managers) {
+            let managerBox = document.getElementById(manager)
+            managerBox.style.display = 'none';
+
+            // disable fields
+            let fields = getManagerFields(manager);
+            for (let field of fields) {
+                field.disabled = true;
+            }
+        }
+    }
+
+    function selectManagerForm(manager) {
+        resetManagerForms();
+        let managerBox = document.getElementById(manager);
+
+        let fields = getManagerFields(manager);
+        for (let field of fields) {
+            field.disabled = false;
+        }
+        managerBox.style.display = 'flex';
+    }
+
+    $('.view-manager').click(function() {
+        let config = $(this).data('config');
+        let managerDetails = document.getElementById('manager-details');
+        managerDetails.innerHTML = '';
+        for (let key in config) {
+            let div = document.createElement('div');
+            div.classList.add('manager-detail-item');
+            div.innerHTML = `<strong>${key}:</strong> <span>${config[key]}</span>`;
+            managerDetails.appendChild(div);
+        }
+    });
+
+</script>
+    
+{% endblock extra_js %}
+    

@@ -4,7 +4,7 @@
 {% block content %}
 
 <div class="container-fluid py-5">
-    <form action="" method="post" enctype="multipart/form-data">
+    <form class="box-container" id="sender" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.media }}
 
@@ -63,7 +63,7 @@
                     <div class="mb-2 d-flex align-items-center gap-3">
                         <div>
                             <label for="">Start</label>
-                            <input id="start" required="true" value="{% get form.start.value %}" name="start"
+                            <input id="start" min="1" required="true" value="{% get form.start.value %}" name="start"
                                 type="number" class="form-control" value="0">
                             {% for error in form.start.errors %}
                             <small class="text-danger">{{ error }}</small>
@@ -72,7 +72,7 @@
                         <span class="d-block pt-3">-</span>
                         <div class="ms-auto">
                             <label for="">End</label>
-                            <input id="stop" required="true" value="{% get form.stop.value %}" name="stop"
+                            <input min="1" id="stop" required="true" value="{% get form.stop.value %}" name="stop"
                                 type="number" class="form-control" value="1">
                             {% for error in form.stop.errors %}
                             <small class="text-danger">{{ error }}</small>
@@ -86,6 +86,14 @@
                     <label for="">Email Column</label>
                     <select class="form-select" required name="email_key" id="email_key"></select>
                     {% for error in form.email_key.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="mail_manager">Select Email Manager *</label>
+                    {{ form.mail_manager }}
+                    {% for error in form.mail_manager.errors %}
                     <small class="text-danger">{{ error }}</small>
                     {% endfor %}
                 </div>

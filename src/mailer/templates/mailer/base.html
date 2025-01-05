@@ -49,6 +49,13 @@
                              btn btn-outline-primary btn-sm" aria-current="page" href="{% url 'mailer:phone' %}">
                         Send SMS
                     </a>
+                    <a class="nav-link 
+                        {% if page == 'settings' %}
+                            active
+                        {% endif %}
+                             btn btn-outline-primary btn-sm" aria-current="page" href="{% url 'mailer:settings' %}">
+                        Settings
+                    </a>
                 </div>
             </div>
         </div>

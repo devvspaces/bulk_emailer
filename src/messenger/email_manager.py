@@ -8,7 +8,7 @@ import requests
 from django.conf import settings
 from messenger.smtp import EmailConnection, get_connection
 from utils.general import bytes_to_base64_str, is_success
-from utils.loggers import logger
+from utils.loggers import logger, err_logger
 
 from .sender_manager import BaseSenderManager
 
@@ -281,6 +281,6 @@ class SmtpEmailManager(BaseEmailManager):
                 attachments=attachments,
             )
         except Exception as e:
-            logger.exception(e)
+            err_logger.exception(e)
             return False
         return True

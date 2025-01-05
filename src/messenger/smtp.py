@@ -5,10 +5,22 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email import encoders
 from email.mime.base import MIMEBase
-import logging
+from utils.loggers import err_logger, logger  # noqa
 
 
-class EmailConnection(ContextDecorator):
+class SingletonMeta(type):
+    """
+    A metaclass for creating a singleton class.
+    """
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+class EmailConnection(ContextDecorator, metaclass=SingletonMeta):
     """
     This class is responsible for connecting to the
     email server and sending the email.
@@ -21,9 +33,13 @@ class EmailConnection(ContextDecorator):
         self.password = password
         self.connection = None
         self.context = ssl.create_default_context()
+    
 
     def __enter__(self):
-        logging.info("Connecting to the email server")
+        if self.connection is not None:
+            logger.info("Connection already exists")
+            return self
+        logger.info("Connecting to the email server")
         if self.port == 465:
             self.connection = smtplib.SMTP_SSL(
                 self.host, self.port, context=self.context
@@ -31,13 +47,13 @@ class EmailConnection(ContextDecorator):
         else:
             self.connection = smtplib.SMTP(self.host, self.port)
             self.connection.starttls(context=self.context)
-        logging.info("Logging into the email server")
+        logger.info("Logging into the email server")
         self.connection.login(self.username, self.password)
-        logging.info("Successfully logged in")
+        logger.info("Successfully logged in")
         return self
 
     def __exit__(self, *exc):
-        logging.info("Disconnecting from the email server")
+        logger.info("Disconnecting from the email server")
         self.connection.quit()
 
     def send(
@@ -77,6 +93,7 @@ class EmailConnection(ContextDecorator):
             message.attach(MIMEText(html, "html"))
 
         if attachments is not None:
+            logger.info("Adding attachments to the email")
             for attachment in attachments:
                 part = MIMEBase("application", "octet-stream")
                 part.set_payload(attachment["data"])
@@ -92,15 +109,12 @@ class EmailConnection(ContextDecorator):
             self.connection.sendmail(self.username, recipient, message.as_string())
             return True
         except Exception as e:
-            logging.error(f"Failed to send email: {e}")
+            err_logger.error(f"Failed to send email: {e}")
+            err_logger.exception(e)
             raise e
 
 
-connection: EmailConnection = None
-
-
 def get_connection(host: str, port: int, username: str, password: str):
-    global connection
-    if connection is None:
-        connection = EmailConnection(host, port, username, password)
+    connection = EmailConnection(host, port, username, password)
+    connection.__enter__()
     return connection

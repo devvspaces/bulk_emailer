@@ -23,7 +23,7 @@ label {
     font-weight: 500;
 }
 
-form {
+.box-container {
     max-width: 900px;
     margin: auto;
     background: white;
@@ -36,11 +36,45 @@ legend {
     font-weight: bold;
 }
 
-form button.btn {
+#sender button.btn {
     margin-top: 3rem !important;
     display: block;
     padding: 1.1rem 2rem;
     width: 100%;
     font-weight: 500;
     font-size: 1.1rem;
+}
+
+
+.manager-form {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #212529;
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.manager-form p {
+    flex: 1;
+    min-width: 200px;
+}
+
+
+#manager-details {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+#manager-details .manager-detail-item {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+#manager-details .manager-detail-item strong {
+    font-weight: 500;
+    text-transform: capitalize;
 }
