@@ -1,0 +1,16 @@
+version: '3.5'
+services:
+  thunder:
+    build: .
+    ports:
+    - "7000:8000"
+    container_name: thunder
+    volumes:
+      - db-data:/app/src
+    env_file:
+      - ./src/.env
+    working_dir: /app/src
+    entrypoint: ./entrypoint.sh
+
+volumes:
+  db-data:
