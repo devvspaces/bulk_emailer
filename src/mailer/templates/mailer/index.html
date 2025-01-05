@@ -97,6 +97,14 @@
                     <small class="text-danger">{{ error }}</small>
                     {% endfor %}
                 </div>
+
+                <div class="mb-4">
+                    <label for="email_domain">Email Domain</label>
+                    {{ form.email_domain }}
+                    {% for error in form.email_domain.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 

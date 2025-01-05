@@ -37,13 +37,13 @@ class EmailManager(models.Model):
             }
         )
 
-    def get_email_manager(self, sender: str, reply_to: str) -> BaseEmailManager:
+    def get_email_manager(self, sender: str, email_domain: str, reply_to: str) -> BaseEmailManager:
         email_manager: BaseEmailManager = MANAGER_CONFIG.get(self.mail_manager).get(
             "manager"
         )
         return email_manager(
             **self.config,
-            sender=f"{sender}@{settings.EMAIL_DOMAIN}",
+            sender=f"{sender}@{email_domain}",
             block_send=settings.BLOCK_EMAIL,
             debug=settings.DEBUG_EMAIL,
             reply_email=reply_to,

@@ -72,8 +72,9 @@ class Dashboard(TemplateView):
         """
         sender = data.get("sender")
         reply_to = data.get("reply_to")
+        email_domain = data.get("email_domain")
         mail_manager = data.get("mail_manager")
-        return mail_manager.get_email_manager(sender, reply_to)
+        return mail_manager.get_email_manager(sender, email_domain, reply_to)
 
     def create_messenger(self, file_path: str, data: dict):
         """

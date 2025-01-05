@@ -33,6 +33,10 @@ class MailForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
         required=True,
     )
+    email_domain = forms.CharField(
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        help_text="Enter the email domain",
+    )
 
     def clean(self):
         cleaned = super().clean()
