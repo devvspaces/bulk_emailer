@@ -1,7 +1,16 @@
+import os
+import sys
+
 from decouple import config
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys._MEIPASS)
+    DATA_DIR = Path(os.environ.get(
+        'BULK_EMAILER_DATA_DIR', os.path.dirname(sys.executable)))
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent
+    DATA_DIR = BASE_DIR
 
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-ddd1')
@@ -38,7 +47,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ["templates"],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -57,7 +66,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     }
 }
 
@@ -100,8 +109,10 @@ STATICFILES_DIRS = [
     BASE_DIR / "assets",
 ]
 
+STATIC_ROOT = DATA_DIR / "static"
 
-MEDIA_ROOT = BASE_DIR / "media"
+
+MEDIA_ROOT = DATA_DIR / "media"
 MEDIA_URL = '/media/'
 
 
@@ -126,13 +137,13 @@ LOGGING = {
         'basic_h': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/debug.log',
+            'filename': DATA_DIR / 'logs/debug.log',
             'formatter': 'simple',
         },
         'basic_e': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/error.log',
+            'filename': DATA_DIR / 'logs/error.log',
             'formatter': 'simple',
         },
     },
