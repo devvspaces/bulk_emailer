@@ -25,6 +25,10 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
+      - name: Create runtime directories
+        working-directory: src
+        run: New-Item -ItemType Directory -Force -Path logs, media, static | Out-Null
+
       - name: Build executable
         working-directory: src
         run: pyinstaller --clean --noconfirm bulk_emailer.spec

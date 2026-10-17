@@ -7,6 +7,10 @@ def _setup():
         data_dir = os.path.dirname(sys.executable)
         os.environ.setdefault('BULK_EMAILER_DATA_DIR', data_dir)
         os.chdir(data_dir)
+    else:
+        data_dir = os.path.dirname(os.path.abspath(__file__))
+    for name in ('logs', 'media', 'static'):
+        os.makedirs(os.path.join(data_dir, name), exist_ok=True)
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
 
 
