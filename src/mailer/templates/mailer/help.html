@@ -1,0 +1,129 @@
+{% extends 'mailer/base.html' %}
+
+{% block content %}
+
+<div class="page">
+    <header class="mb-4" data-reveal>
+        <h1 class="form-title">Help &amp; guides</h1>
+        <p class="form-subtitle">Everything you need to send bulk email and SMS.</p>
+    </header>
+
+    <div class="help-layout">
+        <nav class="help-sidebar" aria-label="Help sections">
+            <a class="nav-link active" href="#getting-started">Getting started</a>
+            <a class="nav-link" href="#email-managers">Email managers</a>
+            <a class="nav-link" href="#preparing-your-file">Preparing your file</a>
+            <a class="nav-link" href="#personalization">Personalization</a>
+            <a class="nav-link" href="#sending-sms">Sending SMS</a>
+            <a class="nav-link" href="#faq">Troubleshooting</a>
+        </nav>
+
+        <div>
+            <section class="help-section" id="getting-started" data-reveal>
+                <h2>Getting started</h2>
+                <p>Send your first campaign in three steps.</p>
+                <ol class="steps">
+                    <li>
+                        <strong>Add an email manager</strong> in <a href="{% url 'mailer:settings' %}">Settings</a>.
+                        This is the provider that actually delivers your mail (SendGrid, ZeptoMail, or any SMTP server).
+                    </li>
+                    <li>
+                        <strong>Upload your recipient list</strong> on the <a href="/">Send Email</a> page — a CSV or
+                        Excel file with an email column.
+                    </li>
+                    <li>
+                        <strong>Compose and send</strong>. Write your subject and message, pick the row range, and hit
+                        send.
+                    </li>
+                </ol>
+            </section>
+
+            <section class="help-section" id="email-managers" data-reveal>
+                <h2>Email managers</h2>
+                <p>An email manager stores the credentials for one delivery provider. You can create as many as you
+                    need and pick one per campaign.</p>
+
+                <h3>SendGrid</h3>
+                <p>Create an API key in your SendGrid dashboard and paste it into the <span
+                        class="inline-code">api_key</span> field.</p>
+
+                <h3>ZeptoMail</h3>
+                <p>Paste your ZeptoMail auth token into the <span class="inline-code">api_key</span> field.</p>
+
+                <h3>SMTP server</h3>
+                <p>Provide the server host, port, username and password. Common values:</p>
+                <div class="help-card">
+                    <strong>Gmail</strong>
+                    <div class="help-code-block">Host: smtp.gmail.com
+Port: 587 (or 465 for SSL)
+Username: your.email@gmail.com
+Password: a Google App Password (not your normal password)</div>
+                </div>
+                <p class="help-text">Any port other than <span class="inline-code">465</span> uses STARTTLS
+                    automatically.</p>
+            </section>
+
+            <section class="help-section" id="preparing-your-file" data-reveal>
+                <h2>Preparing your file</h2>
+                <p>Upload a <strong>CSV</strong>, <strong>XLS</strong>, <strong>XLSX</strong> or <strong>GZ</strong>
+                    file. The first row must contain column headers.</p>
+                <ul>
+                    <li><strong>Email column</strong> — pick the header that holds email addresses from the
+                        <em>Email column</em> dropdown after uploading.</li>
+                    <li><strong>Row range</strong> — use the slider or the start/end fields to send to a subset of rows.
+                    </li>
+                </ul>
+                <p>Example file:</p>
+                <div class="help-code-block">email,firstname,lastname
+ada@example.com,Ada,Lovelace
+grace@example.com,Grace,Hopper</div>
+            </section>
+
+            <section class="help-section" id="personalization" data-reveal>
+                <h2>Personalization</h2>
+                <p>Insert values from any column by wrapping the header name in underscores.</p>
+                <div class="help-code-block">Hello _firstname_, thanks for joining us!</div>
+                <p>For the example file above, this renders as <em>&ldquo;Hello Ada, thanks for joining us!&rdquo;</em>
+                    for the first recipient.</p>
+                <div class="help-card">
+                    Use the exact column header (case-sensitive). If your column is <span
+                        class="inline-code">First Name</span>, the placeholder is <span
+                        class="inline-code">_First Name_</span>.
+                </div>
+            </section>
+
+            <section class="help-section" id="sending-sms" data-reveal>
+                <h2>Sending SMS</h2>
+                <ol class="steps">
+                    <li>Set <span class="inline-code">TWILIO_SID</span> and <span
+                            class="inline-code">TWILIO_TOKEN</span> in your <span class="inline-code">.env</span> file.
+                    </li>
+                    <li>Enter your Twilio sender number (e.g. <span class="inline-code">+14155552671</span>).</li>
+                    <li>Upload a file with a <span class="inline-code">phone</span> column.</li>
+                    <li>Compose your message and send.</li>
+                </ol>
+            </section>
+
+            <section class="help-section" id="faq" data-reveal>
+                <h2>Troubleshooting</h2>
+
+                <h3>Emails aren't sending</h3>
+                <p>Check your email manager credentials in Settings. If <span
+                        class="inline-code">BLOCK_EMAIL=True</span> is set in <span class="inline-code">.env</span>,
+                    sending is disabled.</p>
+
+                <h3>My columns don't appear</h3>
+                <p>Upload the file first — the email column dropdown is populated from the file's header row.</p>
+
+                <h3>Recipients selected shows 0</h3>
+                <p>Make sure your file has data rows below the header and that the start/end range is valid.</p>
+
+                <h3>Where is my data stored?</h3>
+                <p>Your database (<span class="inline-code">db.sqlite3</span>), logs, media and static files are kept
+                    next to the application binary.</p>
+            </section>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

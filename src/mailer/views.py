@@ -193,6 +193,18 @@ class SmsDashboard(Dashboard):
         )
 
 
+class Help(TemplateView):
+    """
+    Help and guides page
+    """
+
+    template_name = "mailer/help.html"
+    extra_context = {
+        "title": "Help",
+        "page": "help",
+    }
+
+
 class Settings(ListView):
     """
     Email Sender Settings
