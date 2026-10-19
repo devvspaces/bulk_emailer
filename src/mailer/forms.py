@@ -60,6 +60,36 @@ class MailForm(forms.Form):
         return obj
 
 
+class SmsForm(forms.Form):
+    file = forms.FileField(validators=[validator_file_ext])
+    sender = forms.CharField()
+    subject = forms.CharField()
+    message = forms.CharField(widget=forms.Textarea())
+    start = forms.IntegerField(validators=[validator_start_min])
+    stop = forms.IntegerField(validators=[validator_stop_min])
+
+    def clean(self):
+        cleaned = super().clean()
+
+        # Validate stop is greater than start
+        start = cleaned.get("start")
+        stop = cleaned.get("stop")
+        if (start is not None and stop is not None) and (start > stop):
+            error = ValidationError(
+                "Start must not be greater that stop", code="start_stop_error"
+            )
+            self.add_error("start", error)
+
+        return cleaned
+
+    def save(self, commit=True):
+        file = self.cleaned_data.get("file")
+        obj = Uploads(file=file)
+        if commit:
+            obj.save()
+        return obj
+
+
 class EmailManagerConfigForm(forms.ModelForm):
     label = forms.CharField(
         widget=forms.TextInput(attrs={"class": "form-control"}),

@@ -14,7 +14,7 @@ from messenger.messsage_manager import HtmlMessageManager
 from utils.general import count_true_in_iter
 from utils.loggers import err_logger  # noqa
 
-from .forms import EmailManagerConfigForm, MailForm
+from .forms import EmailManagerConfigForm, MailForm, SmsForm
 
 
 class Dashboard(TemplateView):
@@ -32,7 +32,7 @@ class Dashboard(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["form"] = MailForm()
+        context.setdefault("form", self.form_class())
         return context
 
     def get_message_context(self, data: dict):
@@ -164,6 +164,7 @@ class SmsDashboard(Dashboard):
 
     template_name = "mailer/sms.html"
     message_template = "mailer/sms_templates/template1.html"
+    form_class = SmsForm
     extra_context = {
         "title": "SMS Sender",
         "page": "phone",
@@ -188,9 +189,77 @@ class SmsDashboard(Dashboard):
             sid=settings.TWILIO_SID,
             token=settings.TWILIO_TOKEN,
             sender=sender,
-            block_send=False and settings.BLOCK_EMAIL,
+            block_send=settings.BLOCK_EMAIL,
             debug=settings.DEBUG_EMAIL,
         )
+
+    def create_messenger(self, file_path: str, data: dict):
+        """
+        Create messenger for SMS
+
+        :param file_path: path to the recipient file
+        :type file_path: str
+        :param data: form cleaned data
+        :type data: dict
+        :return: messenger
+        :rtype: ExcelMessenger
+        """
+        start = data.get("start")
+        stop = data.get("stop")
+        messenger = ExcelMessenger(
+            start=start,
+            stop=stop,
+            file_path=file_path,
+            recipient_field=settings.RECEIPIENT_SMS_KEY,
+        )
+        messenger.set_sender_manager(self.create_sender_manager(data))
+        messenger.set_message_manager(self.create_message_manager(data))
+        return messenger
+
+    def post(self, request, **kwargs):
+        """
+        Post request, save form for uploaded file
+        and start sending SMS messages
+        """
+        form = self.form_class(data=request.POST, files=request.FILES)
+        if form.is_valid():
+            obj = form.save()
+
+            subject = form.cleaned_data.get("subject")
+            message = form.cleaned_data.get("message")
+            start = form.cleaned_data.get("start")
+            stop = form.cleaned_data.get("stop")
+
+            file_path = obj.file.path
+            messages_to_be_sent = stop - start + 1
+
+            completed = False
+            try:
+                messenger = self.create_messenger(file_path, form.cleaned_data)
+
+                sents_fails = messenger.start_process(
+                    subject=subject, message=message
+                )
+                sents = count_true_in_iter(sents_fails)
+                fails = messages_to_be_sent - sents
+
+                response_message = "{} messages sent, {} messages failed".format(
+                    sents, fails
+                )
+
+                messages.success(request, response_message)
+                completed = True
+            except Exception as e:
+                err_logger.exception(e)
+                messages.warning(request, e)
+
+            obj.delete()
+            os.remove(file_path)
+            if completed:
+                return redirect(self.request.get_full_path())
+
+        context = self.get_context_data(form=form)
+        return self.render_to_response(context)
 
 
 class Help(TemplateView):

@@ -233,7 +233,7 @@ def test_excel_messenger_get_index_dict(excel_messenger: G, testcase: U):
 
 
 def test_excel_messenger_get_email_from_data(excel_messenger: G):
-    computed = excel_messenger.get_email_from_data(
+    computed = excel_messenger.get_recipient_from_data(
         excel_messenger.get_index_dict(0))
     expected = 'ayo@testing.com'
     assert expected == computed
@@ -241,7 +241,7 @@ def test_excel_messenger_get_email_from_data(excel_messenger: G):
 
 def test_excel_messenger_get_email_from_data_error(excel_messenger_error: G):
     with pytest.raises(TypeError, match='column not in file'):
-        excel_messenger_error.get_email_from_data(
+        excel_messenger_error.get_recipient_from_data(
             excel_messenger_error.get_index_dict(0))
 
 
