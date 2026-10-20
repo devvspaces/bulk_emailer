@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.Dashboard.as_view(), name='home'),
     path('send-sms/', views.SmsDashboard.as_view(), name='phone'),
     path('settings/', views.Settings.as_view(), name='settings'),
+    path('help/', views.Help.as_view(), name='help'),
 ]

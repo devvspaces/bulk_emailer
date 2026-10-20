@@ -40,8 +40,8 @@ class TestManager(SimpleTestCase):
         self.manager.block_send()
         self.assertTrue(self.manager.get_block_send())
 
-    def test_get_sender_email(self):
-        computed = self.manager.get_sender_email()
+    def test_get_sender(self):
+        computed = self.manager.get_sender()
         self.assertEqual(computed, 'test@example.com')
 
     def test_get_reply_email_returns_sender(self):
@@ -50,8 +50,7 @@ class TestManager(SimpleTestCase):
 
     def test_get_reply_email(self):
         manager = BaseEmailManager(
-            domain='example.com',
-            sender='test',
+            sender='test@example.com',
             reply_email='noreplytest@gmail.com'
         )
         computed = manager.get_reply_email()
@@ -72,32 +71,14 @@ class TestManager(SimpleTestCase):
         self.assertEqual(computed2, 'hello world\n')
         self.assertTrue(computed)
 
-    def test_send_email_with_debug(self):
-        self.manager.set_debug()
-        with redirect_stdout(StringIO()) as f:
-            computed = self.manager.send_email('hello world')
-        computed2 = f.getvalue()
-        self.assertEqual(computed2, 'hello world\n')
-        self.assertFalse(computed)
-
-    def test_send_email_without_debug(self):
-        with redirect_stdout(StringIO()) as f:
-            computed = self.manager.send_email('hello world')
-        computed2 = f.getvalue()
-        self.assertEqual(computed2, '')
-        self.assertFalse(computed)
-
-    def test_send_email_with_block_send(self):
+    def test_send_message_with_block_send(self):
         self.manager.block_send()
-        with redirect_stdout(StringIO()) as f:
-            computed = self.manager.send_email('hello world')
-        computed2 = f.getvalue()
-        self.assertEqual(computed2, '')
+        computed = self.manager.send_message('hello world')
         self.assertTrue(computed)
 
-    def test_send_mail(self):
+    def test_send_raises_not_implemented(self):
         with self.assertRaises(NotImplementedError):
-            self.manager.send_mail()
+            self.manager.send()
 
 
 class TestSendGridManager(SimpleTestCase):

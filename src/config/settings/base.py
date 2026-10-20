@@ -163,6 +163,25 @@ TWILIO_SID = config('TWILIO_SID', default='test')
 TWILIO_TOKEN = config('TWILIO_TOKEN', default='test')
 
 
+# Vendor the Quill editor assets locally (they are loaded from CDN by
+# django-quill-editor by default). This keeps the editor working offline.
+from django_quill.config import MEDIA_JS as _QUILL_MEDIA_JS
+from django_quill.config import MEDIA_CSS as _QUILL_MEDIA_CSS
+
+_QUILL_MEDIA_JS[:] = [
+    'vendor/highlight.min.js',
+    'vendor/quill.min.js',
+    'vendor/quill.imageCompressor.min.js',
+    'vendor/quill-resize-module.min.js',
+    'django_quill/django_quill.js',
+]
+_QUILL_MEDIA_CSS[:] = [
+    'vendor/quill.snow.css',
+    'vendor/highlight.darcula.min.css',
+    'vendor/quill-resize.min.css',
+    'django_quill/django_quill.css',
+]
+
 QUILL_CONFIGS = {
     'default':{
         'theme': 'snow',

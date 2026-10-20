@@ -17,6 +17,12 @@ for package in ('django', 'django_quill', 'mailer', 'messenger', 'config', 'util
     binaries += b
     hiddenimports += h
 
+for root, _dirs, files in os.walk(os.path.join(spec_root, 'assets')):
+    for name in files:
+        src = os.path.join(root, name)
+        dest = os.path.dirname(os.path.relpath(src, spec_root))
+        datas.append((src, dest))
+
 hiddenimports += collect_submodules('django.core.management.commands')
 
 excludes = [

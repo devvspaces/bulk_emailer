@@ -7,11 +7,13 @@ from mailer.models import Uploads
     'field',
     [
         'sender',
-        'reply_to',
         'subject',
-        'message',
+        'content',
+        'email_key',
         'start',
         'stop',
+        'mail_manager',
+        'email_domain',
         'file',
     ]
 )

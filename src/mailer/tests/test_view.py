@@ -7,6 +7,7 @@ from django.urls import reverse
 T = TypeVar('T', bound=Client)
 
 
+@pytest.mark.django_db
 def test_view_dashboard(client: T):
     path = reverse('mailer:home')
     response = client.get(path)
@@ -15,16 +16,18 @@ def test_view_dashboard(client: T):
 
 @pytest.mark.django_db
 @pytest.mark.usefixtures('use_dummy_media_path')
-def test_send_messages(client: T, mail_form_data: dict):
+def test_send_messages(client: T, mail_form_data: dict, settings):
+    settings.BLOCK_EMAIL = True
     path = reverse('mailer:home')
-    response = client.post(path, data=mail_form_data)
-    assert response.status_code == 302
+    response = client.post(path, data=mail_form_data, follow=True)
+    assert response.status_code == 200
     messages = list(response.context['messages'])
     assert len(messages) == 1
     assert str(messages[0]) \
         == '1 messages sent, 0 messages failed'
 
 
+@pytest.mark.django_db
 def test_home_form_error(client: T, mail_form_data: dict):
     path = reverse('mailer:home')
     mail_form_data.pop('sender')

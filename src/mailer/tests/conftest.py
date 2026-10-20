@@ -4,6 +4,8 @@ from typing import TypeVar
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from mailer.models import EmailManager
+
 T = TypeVar('T', bound=Path)
 
 
@@ -34,14 +36,31 @@ def wrong_extention_file_obj(tmp_path: T):
 
 
 @pytest.fixture
-def mail_form_data(uploaded_file_obj):
+def email_manager(db):
+    return EmailManager.objects.create(
+        label='Test Manager',
+        mail_manager='smtp',
+        config={
+            'host': 'smtp.example.com',
+            'port': 587,
+            'username': 'user',
+            'password': 'pass',
+        },
+    )
+
+
+@pytest.fixture
+def mail_form_data(uploaded_file_obj, email_manager):
     data = {
         'sender': 'test',
         'reply_to': 'test@reply.to',
         'subject': 'test subject',
-        'message': 'test message',
+        'content': '{"delta":"","html":"<p>test message</p>"}',
+        'email_key': 'email',
         'start': 1,
         'stop': 1,
-        'file': uploaded_file_obj
+        'mail_manager': str(email_manager.pk),
+        'email_domain': 'example.com',
+        'file': uploaded_file_obj,
     }
     return data

@@ -10,6 +10,13 @@ T = Type[Path]
 M = Type[HtmlMessageManager]
 
 
+class DummyEmailManager(BaseEmailManager):
+    """Concrete email manager that always reports a successful send."""
+
+    def send(self, recipient, subject, message, **kwargs):
+        return True
+
+
 @pytest.fixture
 def use_dummy_template_backend(settings, tmp_path):
     test_template_dir: T = tmp_path
@@ -46,11 +53,12 @@ def create_manager(use_dummy_template_backend):
 
 @pytest.fixture
 def email_manager():
-    manager = BaseEmailManager(
-        domain='example.com',
-        sender='test',
-    )
-    return manager
+    return DummyEmailManager(sender='test@example.com')
+
+
+@pytest.fixture
+def sender_manager():
+    return DummyEmailManager(sender='test@example.com')
 
 
 @pytest.fixture
@@ -78,7 +86,7 @@ def messenger_with_managers(email_manager, message_manager):
         start=10,
         stop=20
     )
-    messenger.set_email_manager(email_manager)
+    messenger.set_sender_manager(email_manager)
     messenger.set_message_manager(message_manager)
     return messenger
 
@@ -91,7 +99,7 @@ def excel_messenger(excel_test_csv_path, create_manager, email_manager):
         file_path=excel_test_csv_path
     )
     messenger.set_message_manager(create_manager)
-    messenger.set_email_manager(email_manager)
+    messenger.set_sender_manager(email_manager)
     return messenger
 
 
@@ -106,5 +114,5 @@ def excel_messenger_error(
         file_path=excel_test_csv_path_error
     )
     messenger.set_message_manager(create_manager)
-    messenger.set_email_manager(email_manager)
+    messenger.set_sender_manager(email_manager)
     return messenger
