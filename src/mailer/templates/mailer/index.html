@@ -72,16 +72,37 @@
 
             <div class="field-group">
                 <label>Recipient list <span class="required-mark">*</span></label>
-                <div class="dropzone">
-                    <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz" required>
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                        <path d="M13 2v7h7" />
-                    </svg>
-                    <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
-                    <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
-                    <div class="dz-file"></div>
+                <div class="csv-source" data-page="email">
+                    <div class="mode-toggle" role="tablist" aria-label="CSV input method">
+                        <button type="button" class="mode-btn is-active" data-mode="upload">Upload file</button>
+                        <button type="button" class="mode-btn" data-mode="paste">Paste CSV</button>
+                    </div>
+
+                    <div class="csv-mode" data-mode-panel="upload">
+                        <div class="dropzone">
+                            <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                                <path d="M13 2v7h7" />
+                            </svg>
+                            <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
+                            <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
+                            <div class="dz-file"></div>
+                        </div>
+                    </div>
+
+                    <div class="csv-mode" data-mode-panel="paste" hidden>
+                        <textarea id="csv-paste" class="form-control csv-paste" rows="8" spellcheck="false"
+                            placeholder="email,firstname,lastname&#10;ada@example.com,Ada,Lovelace&#10;grace@example.com,Grace,Hopper"></textarea>
+                        <div class="help-text">First row is the header. Comma-separated; quoted values supported.</div>
+                    </div>
+
+                    <div class="csv-feedback" hidden>
+                        <div class="csv-block-note" hidden></div>
+                        <div class="csv-issues" id="csv-issues"></div>
+                        <div class="csv-preview-wrap" id="csv-preview"></div>
+                    </div>
                 </div>
                 {% for error in form.file.errors %}
                 <small class="text-danger">{{ error }}</small>
@@ -91,7 +112,7 @@
             <div class="row g-4">
                 <div class="col-md-6 field-group">
                     <label for="email_key">Email column <span class="required-mark">*</span></label>
-                    <select id="email_key" name="email_key" class="form-select" required></select>
+                    <select id="email_key" name="email_key" class="form-select"></select>
                     <div class="help-text" id="email_key_hint">Upload a file to detect columns.</div>
                     {% for error in form.email_key.errors %}
                     <small class="text-danger">{{ error }}</small>
@@ -101,12 +122,12 @@
                     <label>Row range</label>
                     <div class="d-flex align-items-center gap-3">
                         <div style="flex: 1;">
-                            <input id="start" name="start" type="number" min="1" class="form-control" required
+                            <input id="start" name="start" type="number" min="1" class="form-control"
                                 value="{% get form.start.value %}" placeholder="First row">
                         </div>
                         <span class="text-muted-2">to</span>
                         <div style="flex: 1;">
-                            <input id="stop" name="stop" type="number" min="1" class="form-control" required
+                            <input id="stop" name="stop" type="number" min="1" class="form-control"
                                 value="{% get form.stop.value %}" placeholder="Last row">
                         </div>
                     </div>

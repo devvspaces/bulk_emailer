@@ -64,16 +64,37 @@
 
             <div class="field-group">
                 <label>Recipient list <span class="required-mark">*</span></label>
-                <div class="dropzone">
-                    <input name="file" type="file" accept=".csv,.xls,.xlsx,.gz" required>
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                        <path d="M13 2v7h7" />
-                    </svg>
-                    <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
-                    <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
-                    <div class="dz-file"></div>
+                <div class="csv-source" data-page="sms">
+                    <div class="mode-toggle" role="tablist" aria-label="CSV input method">
+                        <button type="button" class="mode-btn is-active" data-mode="upload">Upload file</button>
+                        <button type="button" class="mode-btn" data-mode="paste">Paste CSV</button>
+                    </div>
+
+                    <div class="csv-mode" data-mode-panel="upload">
+                        <div class="dropzone">
+                            <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                                <path d="M13 2v7h7" />
+                            </svg>
+                            <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
+                            <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
+                            <div class="dz-file"></div>
+                        </div>
+                    </div>
+
+                    <div class="csv-mode" data-mode-panel="paste" hidden>
+                        <textarea id="csv-paste" class="form-control csv-paste" rows="8" spellcheck="false"
+                            placeholder="phone,firstname&#10;+14155552671,Ada&#10;+14155552672,Grace"></textarea>
+                        <div class="help-text">First row is the header. Comma-separated; quoted values supported.</div>
+                    </div>
+
+                    <div class="csv-feedback" hidden>
+                        <div class="csv-block-note" hidden></div>
+                        <div class="csv-issues" id="csv-issues"></div>
+                        <div class="csv-preview-wrap" id="csv-preview"></div>
+                    </div>
                 </div>
                 {% for error in form.file.errors %}
                 <small class="text-danger">{{ error }}</small>
@@ -83,7 +104,7 @@
             <div class="row g-4">
                 <div class="col-md-6 field-group">
                     <label for="start">Start row <span class="required-mark">*</span></label>
-                    <input id="start" name="start" type="number" min="1" class="form-control" required
+                    <input id="start" name="start" type="number" min="1" class="form-control"
                         value="{% get form.start.value %}" placeholder="1">
                     {% for error in form.start.errors %}
                     <small class="text-danger">{{ error }}</small>
@@ -91,11 +112,15 @@
                 </div>
                 <div class="col-md-6 field-group">
                     <label for="stop">End row <span class="required-mark">*</span></label>
-                    <input id="stop" name="stop" type="number" min="1" class="form-control" required
+                    <input id="stop" name="stop" type="number" min="1" class="form-control"
                         value="{% get form.stop.value %}" placeholder="Last row">
                     {% for error in form.stop.errors %}
                     <small class="text-danger">{{ error }}</small>
                     {% endfor %}
+                </div>
+                <div class="col-12">
+                    <div id="slider-range" class="mt-2"></div>
+                    <div class="help-text mt-2">Recipients selected: <strong id="recipient-count">0</strong></div>
                 </div>
             </div>
         </section>

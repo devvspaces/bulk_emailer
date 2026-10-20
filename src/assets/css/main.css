@@ -453,6 +453,192 @@ label,
   margin-top: 0.3rem;
 }
 
+/* ---------- CSV source (upload / paste) ---------- */
+.csv-source {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color var(--transition), background-color var(--transition);
+}
+
+.mode-btn:hover {
+  color: var(--text);
+}
+
+.mode-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.csv-paste {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.csv-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.csv-block-note {
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.csv-issues {
+  font-size: 0.85rem;
+}
+
+.issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.issue-summary {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 0.35rem;
+}
+
+.issue-ok {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.issue-group-title {
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.issue-group-title.error { color: var(--danger); }
+.issue-group-title.warning { color: var(--warning); }
+
+.issue-item {
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.issue-item.error {
+  color: var(--danger);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.issue-item.warning {
+  color: var(--warning);
+  background: rgba(251, 191, 36, 0.06);
+}
+
+.issue-line {
+  flex: none;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.issue-msg {
+  overflow-wrap: anywhere;
+}
+
+.csv-preview-wrap {
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.csv-preview {
+  margin: 0;
+  width: 100%;
+  min-width: 480px;
+  font-size: 0.82rem;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--border);
+  color: var(--text);
+}
+
+.csv-preview thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.csv-preview td,
+.csv-preview th {
+  padding: 0.4rem 0.65rem;
+  white-space: nowrap;
+}
+
+.csv-preview td.idx,
+.csv-preview th.idx {
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  user-select: none;
+  width: 1%;
+}
+
+.csv-preview tr.row-error td {
+  background: rgba(248, 113, 113, 0.09);
+}
+
+.csv-preview tr.row-warning td {
+  background: rgba(251, 191, 36, 0.06);
+}
+
+.preview-caption {
+  position: sticky;
+  bottom: 0;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+
 /* ---------- Quill editor (dark) ---------- */
 .ql-toolbar.ql-snow,
 .ql-container.ql-snow {

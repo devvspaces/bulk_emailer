@@ -8,7 +8,7 @@ import requests
 from django.conf import settings
 from messenger.smtp import EmailConnection, get_connection
 from utils.general import bytes_to_base64_str, is_success
-from utils.loggers import logger, err_logger
+from utils.loggers import err_logger
 
 from .sender_manager import BaseSenderManager
 
@@ -116,9 +116,13 @@ class SendGridEmailManager(BaseEmailManager):
             headers=self.get_headers(),
         )
         stat = is_success(response.status_code)
-        if not stat and self.get_debug():
-            logger.debug(response.content)
-            logger.debug(response.status_code)
+        if not stat:
+            detail = (response.text or "").strip()[:500] or "(empty response)"
+            err_logger.error(
+                "SendGrid send failed for %s: HTTP %s - %s",
+                recipient, response.status_code, detail,
+            )
+            self.last_error = f"SendGrid HTTP {response.status_code}: {detail}"
         return stat
 
 
@@ -215,9 +219,13 @@ class ZeptoEmailManager(BaseEmailManager):
             headers=self.get_headers(),
         )
         stat = is_success(response.status_code)
-        if not stat and self.get_debug():
-            logger.debug(response.content)
-            logger.debug(response.status_code)
+        if not stat:
+            detail = (response.text or "").strip()[:500] or "(empty response)"
+            err_logger.error(
+                "ZeptoMail send failed for %s: HTTP %s - %s",
+                recipient, response.status_code, detail,
+            )
+            self.last_error = f"ZeptoMail HTTP {response.status_code}: {detail}"
         return stat
 
 
@@ -281,6 +289,7 @@ class SmtpEmailManager(BaseEmailManager):
                 attachments=attachments,
             )
         except Exception as e:
+            self.last_error = str(e)
             err_logger.exception(e)
             return False
         return True

@@ -13,6 +13,7 @@ class BaseSenderManager:
         self.__sender = sender
         self.__debug = debug
         self.__block_send = block_send
+        self.last_error = None
 
     def get_recipient_field(self) -> str:
         """

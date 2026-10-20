@@ -142,7 +142,14 @@ class Dashboard(TemplateView):
                     sents, fails
                 )
 
-                messages.success(request, response_message)
+                if fails:
+                    sender_manager = messenger.get_manager().sender_manager
+                    last_error = getattr(sender_manager, "last_error", None)
+                    if last_error:
+                        response_message += " — {}".format(last_error)
+                    messages.warning(request, response_message)
+                else:
+                    messages.success(request, response_message)
                 completed = True
             except Exception as e:
                 err_logger.exception(e)
@@ -247,7 +254,14 @@ class SmsDashboard(Dashboard):
                     sents, fails
                 )
 
-                messages.success(request, response_message)
+                if fails:
+                    sender_manager = messenger.get_manager().sender_manager
+                    last_error = getattr(sender_manager, "last_error", None)
+                    if last_error:
+                        response_message += " — {}".format(last_error)
+                    messages.warning(request, response_message)
+                else:
+                    messages.success(request, response_message)
                 completed = True
             except Exception as e:
                 err_logger.exception(e)
