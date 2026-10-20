@@ -15,23 +15,9 @@ on:
           - linux
 
 jobs:
-  build:
-    name: Build (${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
-    if: matrix.target == inputs.target
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: windows
-            os: windows-latest
-          - target: macos-arm64
-            os: macos-latest
-          - target: macos-intel
-            os: macos-13
-          - target: linux
-            os: ubuntu-latest
-
+  windows:
+    if: inputs.target == 'windows'
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -56,5 +42,95 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bulk_emailer-${{ matrix.target }}
+          name: bulk_emailer-windows
+          path: src/dist/*
+
+  macos-arm64:
+    if: inputs.target == 'macos-arm64'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-build.txt
+
+      - name: Create runtime directories
+        working-directory: src
+        run: python -c "import os; [os.makedirs(d, exist_ok=True) for d in ('logs', 'media', 'static')]"
+
+      - name: Build executable
+        working-directory: src
+        run: pyinstaller --clean --noconfirm bulk_emailer.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bulk_emailer-macos-arm64
+          path: src/dist/*
+
+  macos-intel:
+    if: inputs.target == 'macos-intel'
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-build.txt
+
+      - name: Create runtime directories
+        working-directory: src
+        run: python -c "import os; [os.makedirs(d, exist_ok=True) for d in ('logs', 'media', 'static')]"
+
+      - name: Build executable
+        working-directory: src
+        run: pyinstaller --clean --noconfirm bulk_emailer.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bulk_emailer-macos-intel
+          path: src/dist/*
+
+  linux:
+    if: inputs.target == 'linux'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-build.txt
+
+      - name: Create runtime directories
+        working-directory: src
+        run: python -c "import os; [os.makedirs(d, exist_ok=True) for d in ('logs', 'media', 'static')]"
+
+      - name: Build executable
+        working-directory: src
+        run: pyinstaller --clean --noconfirm bulk_emailer.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bulk_emailer-linux
           path: src/dist/*
