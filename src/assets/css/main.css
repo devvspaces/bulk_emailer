@@ -1115,12 +1115,208 @@ label,
   font-size: 0.8rem;
 }
 
+/* ---------- Wizard ---------- */
+.wizard-nav {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.wizard-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition),
+    background-color var(--transition);
+}
+
+.wizard-nav-item .wizard-nav-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  font-size: 0.75rem;
+}
+
+.wizard-nav-item.is-active {
+  color: #fff;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.wizard-nav-item.is-active .wizard-nav-dot {
+  background: var(--accent);
+}
+
+.wizard-nav-item.is-done {
+  color: var(--text);
+  border-color: var(--accent-soft-border);
+}
+
+.wizard-nav-item.is-done .wizard-nav-dot {
+  background: var(--accent);
+  color: #fff;
+}
+
+.wizard-step[hidden] {
+  display: none !important;
+}
+
+.wizard-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.wizard-controls .btn {
+  min-width: 120px;
+}
+
+/* ---------- Review ---------- */
+.review-list {
+  margin: 0;
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.review-row dt {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.review-row dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Jobs page ---------- */
+.job-card {
+  margin-bottom: 1rem;
+}
+
+.job-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.job-card-title {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.job-id {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.job-subject {
+  font-weight: 600;
+}
+
+.job-card-meta {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.job-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.job-progress .progress {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.job-progress .progress-bar {
+  background: linear-gradient(90deg, var(--accent), #8b5cf6);
+  transition: width 0.4s var(--transition);
+}
+
+.job-counts {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.job-error {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  margin-bottom: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.job-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.job-time {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.job-status {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.job-status-pending { background: var(--surface-2); color: var(--text-muted); }
+.job-status-running { background: rgba(96, 165, 250, 0.15); color: var(--info); }
+.job-status-completed { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+.job-status-partial { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+.job-status-failed { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+.job-status-cancelled { background: var(--surface-2); color: var(--text-faint); }
+
 /* ---------- Animations ---------- */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 [data-reveal] {
   opacity: 0;
   transform: translateY(16px);

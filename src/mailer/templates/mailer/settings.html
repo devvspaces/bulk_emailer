@@ -12,14 +12,15 @@
     <section class="panel" data-reveal>
         <div class="panel-header">
             <div>
-                <h2 class="panel-title">Create email manager</h2>
-                <p class="panel-subtitle">Choose a provider and enter its credentials.</p>
+                <h2 class="panel-title">{% if edit_manager %}Edit email manager{% else %}Create email manager{% endif %}</h2>
+                <p class="panel-subtitle">{% if edit_manager %}Update the provider details for {{ edit_manager.label }}.{% else %}Choose a provider and enter its credentials.{% endif %}</p>
             </div>
             <span class="section-step">1</span>
         </div>
 
         <form action="" method="post">
             {% csrf_token %}
+            <input type="hidden" name="manager_id" value="{% if edit_manager %}{{ edit_manager.pk }}{% endif %}">
 
             <div class="field-group">
                 <label for="id_label">Label <span class="required-mark">*</span></label>
@@ -60,7 +61,35 @@
                 {% endfor %}
             </div>
 
-            <button class="btn btn-primary mt-3" type="submit">Create manager</button>
+            <div class="row g-4 mt-1">
+                <div class="col-md-4 field-group">
+                    <label for="id_sender">Sender prefix</label>
+                    {{ form.sender }}
+                    <div class="help-text">Pre-filled when you pick this manager.</div>
+                    {% for error in form.sender.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+                <div class="col-md-4 field-group">
+                    <label for="id_reply_to">Reply-to</label>
+                    {{ form.reply_to }}
+                    {% for error in form.reply_to.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+                <div class="col-md-4 field-group">
+                    <label for="id_email_domain">Email domain</label>
+                    {{ form.email_domain }}
+                    {% for error in form.email_domain.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button class="btn btn-primary mt-3" type="submit">{% if edit_manager %}Update manager{% else %}Create manager{% endif %}</button>
+            {% if edit_manager %}
+            <a class="btn btn-outline-secondary mt-3" href="{% url 'mailer:settings' %}">Cancel</a>
+            {% endif %}
         </form>
     </section>
 
@@ -90,9 +119,13 @@
                         <td>{{ email_manager.label }}</td>
                         <td>{{ email_manager.get_mail_manager_display }}</td>
                         <td>
-                            <button data-config="{{ email_manager.config_json }}" type="button"
-                                class="btn btn-outline-secondary btn-sm view-manager" data-bs-toggle="modal"
-                                data-bs-target="#managerModal">View</button>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-outline-secondary btn-sm"
+                                    href="{% url 'mailer:settings' %}?edit={{ email_manager.pk }}">Edit</a>
+                                <button data-config="{{ email_manager.config_json }}" type="button"
+                                    class="btn btn-outline-secondary btn-sm view-manager" data-bs-toggle="modal"
+                                    data-bs-target="#managerModal">View</button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

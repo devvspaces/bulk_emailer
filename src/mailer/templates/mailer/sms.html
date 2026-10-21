@@ -12,122 +12,159 @@
     <form id="sms-form" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <section class="panel" data-reveal>
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Sender &amp; message</h2>
-                    <p class="panel-subtitle">Your Twilio number and the message body.</p>
-                </div>
-                <span class="section-step">1</span>
-            </div>
+        <div class="wizard" data-wizard>
+            <div class="wizard-nav" data-wizard-nav role="tablist"></div>
 
-            <div class="field-group">
-                <label for="sender">Phone number <span class="required-mark">*</span></label>
-                <input id="sender" name="sender" type="text" class="form-control" required
-                    value="{% get form.sender.value %}" placeholder="+14155552671">
-                <div class="help-text">The sender number provided by your SMS provider.</div>
-                {% for error in form.sender.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
-            </div>
-
-            <div class="field-group">
-                <label for="subject">Subject <span class="required-mark">*</span></label>
-                <input id="subject" name="subject" type="text" class="form-control" required
-                    value="{% get form.subject.value %}">
-                {% for error in form.subject.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
-            </div>
-
-            <div class="field-group">
-                <label for="message">Message <span class="required-mark">*</span></label>
-                <textarea id="message" name="message" class="form-control" cols="30" rows="6" spellcheck="false"
-                    required>{% get form.message.value %}</textarea>
-                <div class="help-text">Use <span class="inline-code">_column_</span> to personalize with data from your
-                    file.</div>
-                {% for error in form.message.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section class="panel" data-reveal>
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Recipients</h2>
-                    <p class="panel-subtitle">A CSV or Excel file with a <span class="inline-code">phone</span> column.
-                    </p>
-                </div>
-                <span class="section-step">2</span>
-            </div>
-
-            <div class="field-group">
-                <label>Recipient list <span class="required-mark">*</span></label>
-                <div class="csv-source" data-page="sms">
-                    <div class="mode-toggle" role="tablist" aria-label="CSV input method">
-                        <button type="button" class="mode-btn is-active" data-mode="upload">Upload file</button>
-                        <button type="button" class="mode-btn" data-mode="paste">Paste CSV</button>
-                    </div>
-
-                    <div class="csv-mode" data-mode-panel="upload">
-                        <div class="dropzone">
-                            <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz">
-                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                                <path d="M13 2v7h7" />
-                            </svg>
-                            <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
-                            <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
-                            <div class="dz-file"></div>
+            <div class="wizard-step" data-step-title="Recipients">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Recipients</h2>
+                            <p class="panel-subtitle">A CSV or Excel file with a <span class="inline-code">phone</span> column.</p>
                         </div>
                     </div>
 
-                    <div class="csv-mode" data-mode-panel="paste" hidden>
-                        <textarea id="csv-paste" class="form-control csv-paste" rows="8" spellcheck="false"
-                            placeholder="phone,firstname&#10;+14155552671,Ada&#10;+14155552672,Grace"></textarea>
-                        <div class="help-text">First row is the header. Comma-separated; quoted values supported.</div>
+                    <div class="field-group">
+                        <label>Recipient list <span class="required-mark">*</span></label>
+                        <div class="csv-source" data-page="sms">
+                            <div class="mode-toggle" role="tablist" aria-label="CSV input method">
+                                <button type="button" class="mode-btn is-active" data-mode="upload">Upload file</button>
+                                <button type="button" class="mode-btn" data-mode="paste">Paste CSV</button>
+                            </div>
+
+                            <div class="csv-mode" data-mode-panel="upload">
+                                <div class="dropzone">
+                                    <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                                        <path d="M13 2v7h7" />
+                                    </svg>
+                                    <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
+                                    <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
+                                    <div class="dz-file"></div>
+                                </div>
+                            </div>
+
+                            <div class="csv-mode" data-mode-panel="paste" hidden>
+                                <textarea id="csv-paste" class="form-control csv-paste" rows="8" spellcheck="false"
+                                    placeholder="phone,firstname&#10;+14155552671,Ada&#10;+14155552672,Grace"></textarea>
+                                <div class="help-text">First row is the header. Comma-separated; quoted values supported.</div>
+                            </div>
+
+                            <div class="csv-feedback" hidden>
+                                <div class="csv-block-note" hidden></div>
+                                <div class="csv-issues" id="csv-issues"></div>
+                                <div class="csv-preview-wrap" id="csv-preview"></div>
+                            </div>
+                        </div>
+                        {% for error in form.file.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
                     </div>
 
-                    <div class="csv-feedback" hidden>
-                        <div class="csv-block-note" hidden></div>
-                        <div class="csv-issues" id="csv-issues"></div>
-                        <div class="csv-preview-wrap" id="csv-preview"></div>
+                    <div class="row g-4">
+                        <div class="col-md-6 field-group">
+                            <label for="start">Start row <span class="required-mark">*</span></label>
+                            <input id="start" name="start" type="number" min="1" class="form-control"
+                                value="{% get form.start.value %}" placeholder="1">
+                            {% for error in form.start.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 field-group">
+                            <label for="stop">End row <span class="required-mark">*</span></label>
+                            <input id="stop" name="stop" type="number" min="1" class="form-control"
+                                value="{% get form.stop.value %}" placeholder="Last row">
+                            {% for error in form.stop.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div class="col-12">
+                            <div id="slider-range" class="mt-2"></div>
+                            <div class="help-text mt-2">Recipients selected: <strong id="recipient-count">0</strong></div>
+                        </div>
                     </div>
-                </div>
-                {% for error in form.file.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
+                </section>
             </div>
 
-            <div class="row g-4">
-                <div class="col-md-6 field-group">
-                    <label for="start">Start row <span class="required-mark">*</span></label>
-                    <input id="start" name="start" type="number" min="1" class="form-control"
-                        value="{% get form.start.value %}" placeholder="1">
-                    {% for error in form.start.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6 field-group">
-                    <label for="stop">End row <span class="required-mark">*</span></label>
-                    <input id="stop" name="stop" type="number" min="1" class="form-control"
-                        value="{% get form.stop.value %}" placeholder="Last row">
-                    {% for error in form.stop.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-                <div class="col-12">
-                    <div id="slider-range" class="mt-2"></div>
-                    <div class="help-text mt-2">Recipients selected: <strong id="recipient-count">0</strong></div>
-                </div>
-            </div>
-        </section>
+            <div class="wizard-step" data-step-title="Sender &amp; message">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Sender &amp; message</h2>
+                            <p class="panel-subtitle">Your Twilio number and the message body.</p>
+                        </div>
+                    </div>
 
-        <button class="btn btn-primary btn-send" type="submit" data-submit-btn>
-            <span data-submit-label>Send</span>
-        </button>
+                    <div class="field-group">
+                        <label for="sender">Phone number <span class="required-mark">*</span></label>
+                        <input id="sender" name="sender" type="text" class="form-control" required
+                            value="{% get form.sender.value %}" placeholder="+14155552671">
+                        <div class="help-text">The sender number provided by your SMS provider.</div>
+                        {% for error in form.sender.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="subject">Subject <span class="required-mark">*</span></label>
+                        <input id="subject" name="subject" type="text" class="form-control" required
+                            value="{% get form.subject.value %}">
+                        {% for error in form.subject.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label for="message">Message <span class="required-mark">*</span></label>
+                        <textarea id="message" name="message" class="form-control" cols="30" rows="6" spellcheck="false"
+                            required>{% get form.message.value %}</textarea>
+                        <div class="help-text">Use <span class="inline-code">_column_</span> to personalize with data from your
+                            file.</div>
+                        {% for error in form.message.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+
+            <div class="wizard-step" data-step-title="Review &amp; send">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Review &amp; send</h2>
+                            <p class="panel-subtitle">Confirm the details below, then queue the job.</p>
+                        </div>
+                    </div>
+
+                    <dl class="review-list">
+                        <div class="review-row">
+                            <dt>Recipients</dt>
+                            <dd><span data-review="recipients">—</span></dd>
+                        </div>
+                        <div class="review-row">
+                            <dt>From</dt>
+                            <dd><span data-review="from">—</span></dd>
+                        </div>
+                        <div class="review-row">
+                            <dt>Subject</dt>
+                            <dd><span data-review="subject">—</span></dd>
+                        </div>
+                    </dl>
+
+                    <div class="help-text">After sending, you'll be taken to the Jobs page to track progress.</div>
+                </section>
+            </div>
+
+            <div class="wizard-controls">
+                <button type="button" class="btn btn-outline-secondary" data-wizard-back>Back</button>
+                <button type="button" class="btn btn-primary" data-wizard-next>Next</button>
+                <button type="submit" class="btn btn-primary" data-submit-btn data-wizard-submit hidden>
+                    <span data-submit-label>Send</span>
+                </button>
+            </div>
+        </div>
     </form>
 </div>
 

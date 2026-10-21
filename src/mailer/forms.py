@@ -100,10 +100,31 @@ class EmailManagerConfigForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-select"}),
         help_text="Select the email manager",
     )
+    sender = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "e.g. info, admin"}
+        ),
+        help_text="Default sender prefix (before the @).",
+    )
+    reply_to = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "optional@example.com"}
+        ),
+        help_text="Default reply-to address.",
+    )
+    email_domain = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "example.com"}
+        ),
+        help_text="Default email domain.",
+    )
 
     class Meta:
         model = EmailManager
-        fields = ["label", "mail_manager"]
+        fields = ["label", "mail_manager", "sender", "reply_to", "email_domain"]
 
     def save(self, config, *args, **kwargs):
         self.instance.config = config

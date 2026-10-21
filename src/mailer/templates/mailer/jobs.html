@@ -1,0 +1,117 @@
+{% extends 'mailer/base.html' %}
+
+{% block content %}
+
+<div class="page">
+    <header class="mb-4" data-reveal>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1 class="form-title">Jobs</h1>
+                <p class="form-subtitle">Track the progress of your email and SMS sends.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <form method="post" action="{% url 'mailer:job_stop_all' %}">{% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Stop all</button>
+                </form>
+                <form method="post" action="{% url 'mailer:job_clear' %}">{% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Clear finished</button>
+                </form>
+                <form method="post" action="{% url 'mailer:job_clear_all' %}">{% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Clear all</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <div id="jobs-list" data-reveal></div>
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+(function () {
+    "use strict";
+
+    var list = document.getElementById("jobs-list");
+
+    function getCookie(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return "";
+    }
+
+    function esc(value) {
+        return String(value == null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function statusBadge(status, label) {
+        return '<span class="job-status job-status-' + esc(status) + '">' + esc(label) + '</span>';
+    }
+
+    function render(jobs) {
+        if (!jobs.length) {
+            list.innerHTML =
+                '<div class="panel"><div class="empty-state">' +
+                '<div class="empty-icon">' +
+                '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+                '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l2.5 2.5"/>' +
+                '</svg></div>' +
+                '<div class="empty-title">No jobs yet</div>' +
+                '<div class="empty-desc">Send an email or SMS and its progress will appear here.</div>' +
+                '</div></div>';
+            return;
+        }
+
+        var html = "";
+        var csrf = getCookie("csrftoken");
+
+        jobs.forEach(function (job) {
+            var counts = job.sent + " sent · " + job.failed + " failed · " + job.total + " total";
+            var meta = [job.type, job.sender, job.manager_label].filter(Boolean).join(" · ");
+
+            html += '<div class="panel job-card" data-job-id="' + job.id + '">' +
+                '<div class="job-card-head">' +
+                '<div class="job-card-title">' +
+                '<span class="job-id">#' + job.id + '</span> ' +
+                '<span class="job-subject">' + esc(job.subject || "(no subject)") + '</span>' +
+                '</div>' +
+                statusBadge(job.status, job.status_display) +
+                '</div>' +
+                '<div class="job-card-meta">' + esc(meta) + '</div>' +
+                '<div class="job-progress">' +
+                '<div class="progress"><div class="progress-bar" style="width:' + job.progress + '%"></div></div>' +
+                '<span class="job-counts">' + esc(counts) + '</span>' +
+                '</div>' +
+                (job.error ? '<div class="job-error">' + esc(job.error) + '</div>' : '') +
+                '<div class="job-card-foot">' +
+                '<span class="job-time">' + esc(job.created_at) + '</span>' +
+                (job.is_active
+                    ? '<form method="post" action="/jobs/' + job.id + '/stop/" class="d-inline">' +
+                      '<input type="hidden" name="csrfmiddlewaretoken" value="' + esc(csrf) + '">' +
+                      '<button type="submit" class="btn btn-outline-danger btn-sm">Stop</button></form>'
+                    : '') +
+                '</div>' +
+                '</div>';
+        });
+
+        list.innerHTML = html;
+    }
+
+    function load() {
+        fetch("/jobs/data/", { headers: { "Accept": "application/json" } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { render(data.jobs || []); })
+            .catch(function () { /* ignore transient errors */ });
+    }
+
+    load();
+    setInterval(load, 2000);
+})();
+</script>
+{% endblock extra_js %}

@@ -42,6 +42,8 @@
                         href="{% url 'mailer:phone' %}">Send SMS</a>
                     <a class="nav-link {% if page == 'settings' %}active{% endif %}"
                         href="{% url 'mailer:settings' %}">Settings</a>
+                    <a class="nav-link {% if page == 'jobs' %}active{% endif %}"
+                        href="{% url 'mailer:jobs' %}">Jobs</a>
                     <a class="nav-link {% if page == 'help' %}active{% endif %}"
                         href="{% url 'mailer:help' %}">Help</a>
                 </div>

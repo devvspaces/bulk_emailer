@@ -501,6 +501,12 @@
     const updateSendState = function () {
       const blocked =
         currentParsed.headers.length > 0 && currentIssues.errors.length > 0;
+      if (form) {
+        form.dataset.csvReady =
+          currentParsed.headers.length > 0 && currentIssues.errors.length === 0
+            ? "1"
+            : "0";
+      }
       if (sendBtn) sendBtn.disabled = blocked;
       if (blockNote) {
         blockNote.hidden = !blocked;
@@ -789,11 +795,179 @@
     });
   }
 
+  // ---------- Manager prefill ----------
+  function initManagerPrefill() {
+    const script = document.getElementById("email_managers");
+    const select = document.getElementById("id_mail_manager");
+    if (!script || !select) return;
+
+    let managers = [];
+    try {
+      const parsed = JSON.parse(script.textContent);
+      if (Array.isArray(parsed)) managers = parsed;
+    } catch (err) {
+      return;
+    }
+
+    const apply = function () {
+      const pk = parseInt(select.value, 10);
+      const match = managers.filter(function (m) {
+        return m.id === pk;
+      })[0];
+      if (!match) return;
+
+      const sender = document.getElementById("sender");
+      const replyTo = document.getElementById("reply_to");
+      const domain = document.getElementById("id_email_domain");
+      if (sender && match.sender) sender.value = match.sender;
+      if (replyTo && match.reply_to) replyTo.value = match.reply_to;
+      if (domain && match.email_domain) domain.value = match.email_domain;
+    };
+
+    select.addEventListener("change", apply);
+    if (select.value) apply();
+  }
+
+  // ---------- Wizard ----------
+  function initWizard() {
+    document.querySelectorAll("[data-wizard]").forEach(function (wizard) {
+      const steps = Array.prototype.slice.call(
+        wizard.querySelectorAll(".wizard-step")
+      );
+      if (!steps.length) return;
+
+      const form = wizard.closest("form");
+      const nav = wizard.querySelector("[data-wizard-nav]");
+      const backBtn = wizard.querySelector("[data-wizard-back]");
+      const nextBtn = wizard.querySelector("[data-wizard-next]");
+      const submitBtn = wizard.querySelector("[data-wizard-submit]");
+      let current = 0;
+
+      if (nav) {
+        steps.forEach(function (step, i) {
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = "wizard-nav-item";
+          item.setAttribute("data-wizard-index", i);
+          item.innerHTML =
+            '<span class="wizard-nav-dot">' +
+            (i + 1) +
+            '</span><span class="wizard-nav-label">' +
+            (step.getAttribute("data-step-title") || "Step " + (i + 1)) +
+            "</span>";
+          item.addEventListener("click", function () {
+            if (i < current) goTo(i);
+          });
+          nav.appendChild(item);
+        });
+      }
+
+      const render = function () {
+        steps.forEach(function (step, i) {
+          step.hidden = i !== current;
+        });
+        if (nav) {
+          Array.prototype.slice.call(nav.children).forEach(function (item, i) {
+            item.classList.toggle("is-active", i === current);
+            item.classList.toggle("is-done", i < current);
+          });
+        }
+        const isLast = current === steps.length - 1;
+        if (nextBtn) nextBtn.hidden = isLast;
+        if (submitBtn) submitBtn.hidden = !isLast;
+        if (backBtn) backBtn.hidden = current === 0;
+        if (form) {
+          form.dispatchEvent(
+            new CustomEvent("wizard:step", { detail: { step: current } })
+          );
+        }
+      };
+
+      const goTo = function (i) {
+        current = Math.max(0, Math.min(steps.length - 1, i));
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      const validateStep = function (i) {
+        const step = steps[i];
+        let ok = true;
+        step.querySelectorAll("input, select, textarea").forEach(function (field) {
+          if (field.disabled || field.closest("[hidden]")) return;
+          if (!field.checkValidity()) ok = false;
+        });
+        if (form && step.querySelector(".csv-source") && form.dataset.csvReady !== "1") {
+          ok = false;
+        }
+        return ok;
+      };
+
+      if (nextBtn) {
+        nextBtn.addEventListener("click", function () {
+          if (!validateStep(current)) {
+            const firstInvalid = steps[current].querySelector(":invalid");
+            if (firstInvalid && firstInvalid.reportValidity) {
+              firstInvalid.reportValidity();
+            }
+            const issues = steps[current].querySelector(".csv-issues");
+            if (issues) issues.scrollIntoView({ behavior: "smooth", block: "center" });
+            return;
+          }
+          goTo(current + 1);
+        });
+      }
+
+      if (backBtn) {
+        backBtn.addEventListener("click", function () {
+          goTo(current - 1);
+        });
+      }
+
+      if (form) {
+        form.addEventListener("wizard:step", function (e) {
+          if (e.detail.step === steps.length - 1) updateReview(form);
+        });
+      }
+
+      goTo(0);
+    });
+  }
+
+  function updateReview(form) {
+    const set = function (key, value) {
+      form.querySelectorAll('[data-review="' + key + '"]').forEach(function (node) {
+        node.textContent = value;
+      });
+    };
+
+    const sender = document.getElementById("sender");
+    const domain = document.getElementById("id_email_domain");
+    const subject = document.getElementById("subject");
+    const count = document.getElementById("recipient-count");
+    const manager = document.getElementById("id_mail_manager");
+
+    if (sender && domain) {
+      set(
+        "from",
+        sender.value && domain.value ? sender.value + "@" + domain.value : "—"
+      );
+    } else if (sender) {
+      set("from", sender.value || "—");
+    }
+    if (subject) set("subject", subject.value || "—");
+    if (count) set("recipients", count.textContent || "0");
+    if (manager && manager.selectedIndex >= 0) {
+      set("manager", manager.options[manager.selectedIndex].text);
+    }
+  }
+
   // ---------- Init ----------
   document.addEventListener("DOMContentLoaded", function () {
     initToasts();
     initReveal();
     initCsvUpload();
+    initManagerPrefill();
+    initWizard();
     initSendingSpinner();
     initDropzones();
     initHelpScrollspy();

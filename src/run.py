@@ -25,6 +25,11 @@ def main():
     if len(argv) <= 1:
         execute_from_command_line(['manage.py', 'migrate', '--noinput'])
         execute_from_command_line(['manage.py', 'collectstatic', '--noinput'])
+        try:
+            from mailer.jobs import resume_orphaned_jobs
+            resume_orphaned_jobs()
+        except Exception:
+            pass
         execute_from_command_line(
             ['manage.py', 'runserver', '--noreload', f'{host}:{port}'])
     else:

@@ -5,6 +5,7 @@
 {% block content %}
 
 {{ form.media }}
+{{ email_managers|json_script:"email_managers" }}
 
 <div class="page">
     <header class="mb-4" data-reveal>
@@ -15,190 +16,232 @@
     <form id="sender-form" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <section class="panel" data-reveal>
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Sender &amp; delivery</h2>
-                    <p class="panel-subtitle">Who the email comes from and how it is sent.</p>
-                </div>
-                <span class="section-step">1</span>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-6 field-group">
-                    <label for="sender">Sender prefix <span class="required-mark">*</span></label>
-                    <input id="sender" name="sender" type="text" class="form-control"
-                        value="{% get form.sender.value %}" placeholder="e.g. info, admin, contact" required>
-                    <div class="help-text">The local part of the from address (before the @).</div>
-                    {% for error in form.sender.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6 field-group">
-                    <label for="reply_to">Reply-to</label>
-                    <input id="reply_to" name="reply_to" type="email" class="form-control"
-                        value="{% get form.reply_to.value %}" placeholder="optional@example.com">
-                    <div class="help-text">Optional. Where replies are sent.</div>
-                    {% for error in form.reply_to.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6 field-group">
-                    <label for="id_email_domain">Email domain <span class="required-mark">*</span></label>
-                    {{ form.email_domain }}
-                    <div class="help-text">Combined with the sender prefix to form the from address.</div>
-                    {% for error in form.email_domain.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6 field-group">
-                    <label for="id_mail_manager">Email manager <span class="required-mark">*</span></label>
-                    {{ form.mail_manager }}
-                    <div class="help-text">Choose a configured delivery provider.</div>
-                    {% for error in form.mail_manager.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
+        <div class="wizard" data-wizard>
+            <div class="wizard-nav" data-wizard-nav role="tablist"></div>
 
-        <section class="panel" data-reveal>
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Recipients</h2>
-                    <p class="panel-subtitle">Upload a CSV or Excel file and pick the email column and range.</p>
-                </div>
-                <span class="section-step">2</span>
-            </div>
-
-            <div class="field-group">
-                <label>Recipient list <span class="required-mark">*</span></label>
-                <div class="csv-source" data-page="email">
-                    <div class="mode-toggle" role="tablist" aria-label="CSV input method">
-                        <button type="button" class="mode-btn is-active" data-mode="upload">Upload file</button>
-                        <button type="button" class="mode-btn" data-mode="paste">Paste CSV</button>
+            <div class="wizard-step" data-step-title="Recipients">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Recipients</h2>
+                            <p class="panel-subtitle">Upload or paste a CSV/Excel file, then pick the email column and range.</p>
+                        </div>
                     </div>
 
-                    <div class="csv-mode" data-mode-panel="upload">
+                    <div class="field-group">
+                        <label>Recipient list <span class="required-mark">*</span></label>
+                        <div class="csv-source" data-page="email">
+                            <div class="mode-toggle" role="tablist" aria-label="CSV input method">
+                                <button type="button" class="mode-btn is-active" data-mode="upload">Upload file</button>
+                                <button type="button" class="mode-btn" data-mode="paste">Paste CSV</button>
+                            </div>
+
+                            <div class="csv-mode" data-mode-panel="upload">
+                                <div class="dropzone">
+                                    <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                                        <path d="M13 2v7h7" />
+                                    </svg>
+                                    <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
+                                    <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
+                                    <div class="dz-file"></div>
+                                </div>
+                            </div>
+
+                            <div class="csv-mode" data-mode-panel="paste" hidden>
+                                <textarea id="csv-paste" class="form-control csv-paste" rows="8" spellcheck="false"
+                                    placeholder="email,firstname,lastname&#10;ada@example.com,Ada,Lovelace&#10;grace@example.com,Grace,Hopper"></textarea>
+                                <div class="help-text">First row is the header. Comma-separated; quoted values supported.</div>
+                            </div>
+
+                            <div class="csv-feedback" hidden>
+                                <div class="csv-block-note" hidden></div>
+                                <div class="csv-issues" id="csv-issues"></div>
+                                <div class="csv-preview-wrap" id="csv-preview"></div>
+                            </div>
+                        </div>
+                        {% for error in form.file.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6 field-group">
+                            <label for="email_key">Email column <span class="required-mark">*</span></label>
+                            <select id="email_key" name="email_key" class="form-select"></select>
+                            <div class="help-text" id="email_key_hint">Upload a file to detect columns.</div>
+                            {% for error in form.email_key.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 field-group">
+                            <label>Row range</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="flex: 1;">
+                                    <input id="start" name="start" type="number" min="1" class="form-control"
+                                        value="{% get form.start.value %}" placeholder="First row">
+                                </div>
+                                <span class="text-muted-2">to</span>
+                                <div style="flex: 1;">
+                                    <input id="stop" name="stop" type="number" min="1" class="form-control"
+                                        value="{% get form.stop.value %}" placeholder="Last row">
+                                </div>
+                            </div>
+                            <div id="slider-range" class="mt-3"></div>
+                            <div class="help-text mt-2">Recipients selected: <strong id="recipient-count">0</strong></div>
+                            {% for error in form.start.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                            {% for error in form.stop.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="wizard-step" data-step-title="Sender &amp; delivery">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Sender &amp; delivery</h2>
+                            <p class="panel-subtitle">Who the email comes from and how it is sent.</p>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6 field-group">
+                            <label for="sender">Sender prefix <span class="required-mark">*</span></label>
+                            <input id="sender" name="sender" type="text" class="form-control"
+                                value="{% get form.sender.value %}" placeholder="e.g. info, admin, contact" required>
+                            <div class="help-text">The local part of the from address (before the @).</div>
+                            {% for error in form.sender.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 field-group">
+                            <label for="reply_to">Reply-to</label>
+                            <input id="reply_to" name="reply_to" type="email" class="form-control"
+                                value="{% get form.reply_to.value %}" placeholder="optional@example.com">
+                            <div class="help-text">Optional. Where replies are sent.</div>
+                            {% for error in form.reply_to.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 field-group">
+                            <label for="id_email_domain">Email domain <span class="required-mark">*</span></label>
+                            {{ form.email_domain }}
+                            <div class="help-text">Combined with the sender prefix to form the from address.</div>
+                            {% for error in form.email_domain.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 field-group">
+                            <label for="id_mail_manager">Email manager <span class="required-mark">*</span></label>
+                            {{ form.mail_manager }}
+                            <div class="help-text">Choose a configured delivery provider.</div>
+                            {% for error in form.mail_manager.errors %}
+                            <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="wizard-step" data-step-title="Message">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Message</h2>
+                            <p class="panel-subtitle">Subject and body. Use <span class="inline-code">_column_</span> to
+                                personalize with data from your file.</p>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="subject">Subject <span class="required-mark">*</span></label>
+                        <input id="subject" name="subject" type="text" class="form-control"
+                            value="{% get form.subject.value %}" required>
+                        {% for error in form.subject.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-group">
+                        <label>Content <span class="required-mark">*</span></label>
+                        {{ form.content }}
+                        {% for error in form.content.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Attachments</h2>
+                            <p class="panel-subtitle">Optional files to include with every email.</p>
+                        </div>
+                    </div>
+                    <div class="field-group">
                         <div class="dropzone">
-                            <input id="csv" name="file" type="file" accept=".csv,.xls,.xlsx,.gz">
+                            <input id="attachments" name="attachments" type="file" multiple>
                             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                                <path d="M13 2v7h7" />
+                                <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                             </svg>
-                            <div class="dz-title">Click to choose a file, or drag &amp; drop</div>
-                            <div class="dz-hint">CSV, XLS, XLSX or GZ</div>
+                            <div class="dz-title">Click to attach files, or drag &amp; drop</div>
+                            <div class="dz-hint">Multiple files allowed</div>
                             <div class="dz-file"></div>
                         </div>
+                        {% for error in form.attachments.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
                     </div>
-
-                    <div class="csv-mode" data-mode-panel="paste" hidden>
-                        <textarea id="csv-paste" class="form-control csv-paste" rows="8" spellcheck="false"
-                            placeholder="email,firstname,lastname&#10;ada@example.com,Ada,Lovelace&#10;grace@example.com,Grace,Hopper"></textarea>
-                        <div class="help-text">First row is the header. Comma-separated; quoted values supported.</div>
-                    </div>
-
-                    <div class="csv-feedback" hidden>
-                        <div class="csv-block-note" hidden></div>
-                        <div class="csv-issues" id="csv-issues"></div>
-                        <div class="csv-preview-wrap" id="csv-preview"></div>
-                    </div>
-                </div>
-                {% for error in form.file.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
+                </section>
             </div>
 
-            <div class="row g-4">
-                <div class="col-md-6 field-group">
-                    <label for="email_key">Email column <span class="required-mark">*</span></label>
-                    <select id="email_key" name="email_key" class="form-select"></select>
-                    <div class="help-text" id="email_key_hint">Upload a file to detect columns.</div>
-                    {% for error in form.email_key.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-                <div class="col-md-6 field-group">
-                    <label>Row range</label>
-                    <div class="d-flex align-items-center gap-3">
-                        <div style="flex: 1;">
-                            <input id="start" name="start" type="number" min="1" class="form-control"
-                                value="{% get form.start.value %}" placeholder="First row">
-                        </div>
-                        <span class="text-muted-2">to</span>
-                        <div style="flex: 1;">
-                            <input id="stop" name="stop" type="number" min="1" class="form-control"
-                                value="{% get form.stop.value %}" placeholder="Last row">
+            <div class="wizard-step" data-step-title="Review &amp; send">
+                <section class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Review &amp; send</h2>
+                            <p class="panel-subtitle">Confirm the details below, then queue the job.</p>
                         </div>
                     </div>
-                    <div id="slider-range" class="mt-3"></div>
-                    <div class="help-text mt-2">Recipients selected: <strong id="recipient-count">0</strong></div>
-                    {% for error in form.start.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                    {% for error in form.stop.errors %}
-                    <small class="text-danger">{{ error }}</small>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
 
-        <section class="panel" data-reveal>
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Message</h2>
-                    <p class="panel-subtitle">Subject and body. Use <span class="inline-code">_column_</span> to
-                        personalize with data from your file.</p>
-                </div>
-                <span class="section-step">3</span>
-            </div>
+                    <dl class="review-list">
+                        <div class="review-row">
+                            <dt>Recipients</dt>
+                            <dd><span data-review="recipients">—</span></dd>
+                        </div>
+                        <div class="review-row">
+                            <dt>From</dt>
+                            <dd><span data-review="from">—</span></dd>
+                        </div>
+                        <div class="review-row">
+                            <dt>Email manager</dt>
+                            <dd><span data-review="manager">—</span></dd>
+                        </div>
+                        <div class="review-row">
+                            <dt>Subject</dt>
+                            <dd><span data-review="subject">—</span></dd>
+                        </div>
+                    </dl>
 
-            <div class="field-group">
-                <label for="subject">Subject <span class="required-mark">*</span></label>
-                <input id="subject" name="subject" type="text" class="form-control"
-                    value="{% get form.subject.value %}" required>
-                {% for error in form.subject.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
+                    <div class="help-text">After sending, you'll be taken to the Jobs page to track progress.</div>
+                </section>
             </div>
 
-            <div class="field-group">
-                <label>Content <span class="required-mark">*</span></label>
-                {{ form.content }}
-                {% for error in form.content.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
+            <div class="wizard-controls">
+                <button type="button" class="btn btn-outline-secondary" data-wizard-back>Back</button>
+                <button type="button" class="btn btn-primary" data-wizard-next>Next</button>
+                <button type="submit" class="btn btn-primary" data-submit-btn data-wizard-submit hidden>
+                    <span data-submit-label>Send</span>
+                </button>
             </div>
-        </section>
-
-        <section class="panel" data-reveal>
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Attachments</h2>
-                    <p class="panel-subtitle">Optional files to include with every email.</p>
-                </div>
-                <span class="section-step">4</span>
-            </div>
-            <div class="field-group">
-                <div class="dropzone">
-                    <input id="attachments" name="attachments" type="file" multiple>
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                    </svg>
-                    <div class="dz-title">Click to attach files, or drag &amp; drop</div>
-                    <div class="dz-hint">Multiple files allowed</div>
-                    <div class="dz-file"></div>
-                </div>
-                {% for error in form.attachments.errors %}
-                <small class="text-danger">{{ error }}</small>
-                {% endfor %}
-            </div>
-        </section>
-
-        <button class="btn btn-primary btn-send" type="submit" data-submit-btn>
-            <span data-submit-label>Send</span>
-        </button>
+        </div>
     </form>
 </div>
 

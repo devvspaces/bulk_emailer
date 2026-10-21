@@ -1,20 +1,20 @@
 import json
 import os
+import shutil
 from typing import Any
-from django.conf import settings
 
+from django.conf import settings
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView, ListView
+
 from mailer.mail_manager import MANAGER_CONFIG
-from mailer.models import EmailManager
-from messenger.sms_manager import SmsManager
-from messenger.messager import ExcelMessenger
-from messenger.messsage_manager import HtmlMessageManager
-from utils.general import count_true_in_iter
-from utils.loggers import err_logger  # noqa
+from mailer.models import EmailManager, Job
 
 from .forms import EmailManagerConfigForm, MailForm, SmsForm
+from .jobs import request_cancel, resume_orphaned_jobs, save_attachments, start_job
 
 
 class Dashboard(TemplateView):
@@ -23,7 +23,6 @@ class Dashboard(TemplateView):
     """
 
     template_name = "mailer/index.html"
-    message_template = "mailer/email_templates/template1.html"
     extra_context = {
         "title": "Email Sender",
         "page": "home",
@@ -33,132 +32,54 @@ class Dashboard(TemplateView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context.setdefault("form", self.form_class())
+        context["email_managers"] = [
+            {
+                "id": m.pk,
+                "label": m.label,
+                "mail_manager": m.mail_manager,
+                "sender": m.sender,
+                "reply_to": m.reply_to,
+                "email_domain": m.email_domain,
+            }
+            for m in EmailManager.objects.all()
+        ]
         return context
 
-    def get_message_context(self, data: dict):
-        """
-        Get message context
+    def _get_message(self, form):
+        return json.loads(form.cleaned_data.get("content")).get("html")
 
-        :param data: form cleaned data
-        :type data: dict
-        :return: message context
-        :rtype: dict
-        """
-        return {"reply_to": data.get("reply_to")}
-
-    def create_message_manager(self, data: dict):
-        """
-        Create message manager
-
-        :param data: form cleaned data
-        :type data: dict
-        :return: message manager
-        :rtype: HtmlMessageManager
-        """
-        return HtmlMessageManager(
-            template_name=self.message_template,
-            request=self.request,
-            context=self.get_message_context(data),
+    def _build_job(self, form, obj, message):
+        mail_manager = form.cleaned_data.get("mail_manager")
+        return Job(
+            job_type=Job.JobType.EMAIL,
+            subject=form.cleaned_data.get("subject"),
+            sender=f"{form.cleaned_data.get('sender')}@{form.cleaned_data.get('email_domain')}",
+            reply_to=form.cleaned_data.get("reply_to") or "",
+            email_domain=form.cleaned_data.get("email_domain") or "",
+            manager_label=mail_manager.label,
+            manager_type=mail_manager.mail_manager,
+            manager_config=mail_manager.config,
+            recipient_field=form.cleaned_data.get("email_key"),
+            message=message,
+            start=form.cleaned_data.get("start"),
+            stop=form.cleaned_data.get("stop"),
+            upload=obj,
         )
-
-    def create_sender_manager(self, data: dict):
-        """
-        Create sender manager
-
-        :param data: form cleaned data
-        :type data: dict
-        :return: sender manager
-        :rtype: Email manager
-        """
-        sender = data.get("sender")
-        reply_to = data.get("reply_to")
-        email_domain = data.get("email_domain")
-        mail_manager = data.get("mail_manager")
-        return mail_manager.get_email_manager(sender, email_domain, reply_to)
-
-    def create_messenger(self, file_path: str, data: dict):
-        """
-        Create messenger
-
-        :param file_path: path to excel file
-        :type file_path: str
-        :param data: form cleaned data
-        :type data: dict
-        :return: messenger
-        :rtype: ExcelMessenger
-        """
-        start = data.get("start")
-        stop = data.get("stop")
-        messenger = ExcelMessenger(
-            start=start,
-            stop=stop,
-            file_path=file_path,
-            recipient_field=data.get("email_key"),
-        )
-        messenger.set_sender_manager(self.create_sender_manager(data))
-        messenger.set_message_manager(self.create_message_manager(data))
-        return messenger
 
     def post(self, request, **kwargs):
         """
-        Post request, save form for uploaded file
-        and start sending emails
+        Post request, save the uploaded file, queue a job and redirect
+        to the jobs list for progress tracking.
         """
         form = self.form_class(data=request.POST, files=request.FILES)
         if form.is_valid():
             obj = form.save()
-
-            subject = form.cleaned_data.get("subject")
-            message = json.loads(form.cleaned_data.get("content")).get("html")
-            start = form.cleaned_data.get("start")
-            stop = form.cleaned_data.get("stop")
-
-            attachments = []
-            files = request.FILES.getlist("attachments")
-            for file in files:
-                attachments.append(
-                    {
-                        "filename": file.name,
-                        "data": file.read(),
-                        "mime_type": file.content_type,
-                    }
-                )
-
-            file_path = obj.file.path
-            messages_to_be_sent = stop - start + 1
-
-            completed = False
-            
-            try:
-                messenger = self.create_messenger(file_path, form.cleaned_data)
-
-                sents_fails = messenger.start_process(
-                    subject=subject, message=message, attachments=attachments
-                )
-                sents = count_true_in_iter(sents_fails)
-                fails = messages_to_be_sent - sents
-
-                response_message = "{} messages sent, {} messages failed".format(
-                    sents, fails
-                )
-
-                if fails:
-                    sender_manager = messenger.get_manager().sender_manager
-                    last_error = getattr(sender_manager, "last_error", None)
-                    if last_error:
-                        response_message += " — {}".format(last_error)
-                    messages.warning(request, response_message)
-                else:
-                    messages.success(request, response_message)
-                completed = True
-            except Exception as e:
-                err_logger.exception(e)
-                messages.warning(request, e)
-
-            obj.delete()
-            os.remove(file_path)
-            if completed:
-                return redirect(self.request.get_full_path())
+            job = self._build_job(form, obj, self._get_message(form))
+            job.save()
+            save_attachments(job, request.FILES.getlist("attachments"))
+            start_job(job)
+            messages.success(request, f"Job #{job.pk} queued")
+            return redirect("mailer:jobs")
 
         context = self.get_context_data(form=form)
         return self.render_to_response(context)
@@ -170,110 +91,26 @@ class SmsDashboard(Dashboard):
     """
 
     template_name = "mailer/sms.html"
-    message_template = "mailer/sms_templates/template1.html"
     form_class = SmsForm
     extra_context = {
         "title": "SMS Sender",
         "page": "phone",
     }
 
-    def get_message_context(self, data: dict):
-        return {
-            "subject": data.get("subject"),
-        }
+    def _get_message(self, form):
+        return form.cleaned_data.get("message")
 
-    def create_sender_manager(self, data: dict):
-        """
-        Create sender manager
-
-        :param data: form cleaned data
-        :type data: dict
-        :return: sender manager
-        :rtype: SmsManager
-        """
-        sender = data.get("sender")
-        return SmsManager(
-            sid=settings.TWILIO_SID,
-            token=settings.TWILIO_TOKEN,
-            sender=sender,
-            block_send=settings.BLOCK_EMAIL,
-            debug=settings.DEBUG_EMAIL,
-        )
-
-    def create_messenger(self, file_path: str, data: dict):
-        """
-        Create messenger for SMS
-
-        :param file_path: path to the recipient file
-        :type file_path: str
-        :param data: form cleaned data
-        :type data: dict
-        :return: messenger
-        :rtype: ExcelMessenger
-        """
-        start = data.get("start")
-        stop = data.get("stop")
-        messenger = ExcelMessenger(
-            start=start,
-            stop=stop,
-            file_path=file_path,
+    def _build_job(self, form, obj, message):
+        return Job(
+            job_type=Job.JobType.SMS,
+            subject=form.cleaned_data.get("subject"),
+            sender=form.cleaned_data.get("sender"),
             recipient_field=settings.RECEIPIENT_SMS_KEY,
+            message=message,
+            start=form.cleaned_data.get("start"),
+            stop=form.cleaned_data.get("stop"),
+            upload=obj,
         )
-        messenger.set_sender_manager(self.create_sender_manager(data))
-        messenger.set_message_manager(self.create_message_manager(data))
-        return messenger
-
-    def post(self, request, **kwargs):
-        """
-        Post request, save form for uploaded file
-        and start sending SMS messages
-        """
-        form = self.form_class(data=request.POST, files=request.FILES)
-        if form.is_valid():
-            obj = form.save()
-
-            subject = form.cleaned_data.get("subject")
-            message = form.cleaned_data.get("message")
-            start = form.cleaned_data.get("start")
-            stop = form.cleaned_data.get("stop")
-
-            file_path = obj.file.path
-            messages_to_be_sent = stop - start + 1
-
-            completed = False
-            try:
-                messenger = self.create_messenger(file_path, form.cleaned_data)
-
-                sents_fails = messenger.start_process(
-                    subject=subject, message=message
-                )
-                sents = count_true_in_iter(sents_fails)
-                fails = messages_to_be_sent - sents
-
-                response_message = "{} messages sent, {} messages failed".format(
-                    sents, fails
-                )
-
-                if fails:
-                    sender_manager = messenger.get_manager().sender_manager
-                    last_error = getattr(sender_manager, "last_error", None)
-                    if last_error:
-                        response_message += " — {}".format(last_error)
-                    messages.warning(request, response_message)
-                else:
-                    messages.success(request, response_message)
-                completed = True
-            except Exception as e:
-                err_logger.exception(e)
-                messages.warning(request, e)
-
-            obj.delete()
-            os.remove(file_path)
-            if completed:
-                return redirect(self.request.get_full_path())
-
-        context = self.get_context_data(form=form)
-        return self.render_to_response(context)
 
 
 class Help(TemplateView):
@@ -286,6 +123,107 @@ class Help(TemplateView):
         "title": "Help",
         "page": "help",
     }
+
+
+class JobsView(TemplateView):
+    """
+    List of executed/queued send jobs with live progress.
+    """
+
+    template_name = "mailer/jobs.html"
+    extra_context = {
+        "title": "Jobs",
+        "page": "jobs",
+    }
+
+    def get(self, request, *args, **kwargs):
+        resume_orphaned_jobs()
+        return super().get(request, *args, **kwargs)
+
+
+def jobs_data(request):
+    payload = [
+        {
+            "id": j.pk,
+            "type": j.get_job_type_display(),
+            "status": j.status,
+            "status_display": j.get_status_display(),
+            "subject": j.subject,
+            "sender": j.sender,
+            "manager_label": j.manager_label,
+            "total": j.total,
+            "sent": j.sent,
+            "failed": j.failed,
+            "processed": j.processed,
+            "progress": j.progress,
+            "error": j.error,
+            "is_active": j.is_active,
+            "created_at": j.created_at.strftime("%Y-%m-%d %H:%M") if j.created_at else "",
+            "started_at": j.started_at.strftime("%Y-%m-%d %H:%M") if j.started_at else "",
+            "finished_at": j.finished_at.strftime("%Y-%m-%d %H:%M") if j.finished_at else "",
+        }
+        for j in Job.objects.all()
+    ]
+    return JsonResponse({"jobs": payload})
+
+
+def _delete_job(job):
+    upload = job.upload
+    if upload:
+        if upload.file:
+            try:
+                upload.file.delete(save=False)
+            except Exception:
+                pass
+        upload.delete()
+    folder = os.path.join(settings.MEDIA_ROOT, "jobs", str(job.pk))
+    shutil.rmtree(folder, ignore_errors=True)
+    job.delete()
+
+
+@require_POST
+def job_stop(request, pk):
+    request_cancel(pk)
+    messages.info(request, f"Stop requested for job #{pk}")
+    return redirect("mailer:jobs")
+
+
+@require_POST
+def job_stop_all(request):
+    for job in Job.objects.filter(
+        status__in=[Job.Status.PENDING, Job.Status.RUNNING]
+    ):
+        request_cancel(job.pk)
+    messages.info(request, "All running jobs stopped")
+    return redirect("mailer:jobs")
+
+
+@require_POST
+def job_clear(request):
+    finished = Job.objects.filter(
+        status__in=[
+            Job.Status.COMPLETED,
+            Job.Status.PARTIAL,
+            Job.Status.FAILED,
+            Job.Status.CANCELLED,
+        ]
+    )
+    for job in finished:
+        _delete_job(job)
+    messages.info(request, "Finished jobs cleared")
+    return redirect("mailer:jobs")
+
+
+@require_POST
+def job_clear_all(request):
+    for job in Job.objects.filter(
+        status__in=[Job.Status.PENDING, Job.Status.RUNNING]
+    ):
+        request_cancel(job.pk)
+    for job in Job.objects.all():
+        _delete_job(job)
+    messages.info(request, "All jobs cleared")
+    return redirect("mailer:jobs")
 
 
 class Settings(ListView):
@@ -303,34 +241,59 @@ class Settings(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = EmailManagerConfigForm()
-        forms_dict = {
-            manager: MANAGER_CONFIG[manager]["form"](manager=manager, prefix=manager)
-            for manager in MANAGER_CONFIG.keys()
-        }
-        context["forms"] = list(forms_dict.values())
+        edit_manager = self._get_edit_manager()
+        form = EmailManagerConfigForm(
+            instance=edit_manager,
+            initial={"mail_manager": edit_manager.mail_manager}
+            if edit_manager
+            else None,
+        )
+        context["form"] = form
+        context["forms"] = list(self._manager_forms(edit_manager).values())
         context["managers"] = {"managers": list(MANAGER_CONFIG.keys())}
+        context["edit_manager"] = edit_manager
         return context
+
+    def _get_edit_manager(self):
+        pk = self.request.GET.get("edit") or self.request.POST.get("manager_id")
+        if pk:
+            return EmailManager.objects.filter(pk=pk).first()
+        return None
+
+    def _manager_forms(self, edit_manager=None):
+        forms_dict = {}
+        for manager_key in MANAGER_CONFIG.keys():
+            initial = None
+            if edit_manager and edit_manager.mail_manager == manager_key:
+                initial = edit_manager.config
+            forms_dict[manager_key] = MANAGER_CONFIG[manager_key]["form"](
+                manager=manager_key, prefix=manager_key, initial=initial
+            )
+        return forms_dict
 
     def post(self, request, **kwargs):
         self.object_list = self.get_queryset()
+        edit_manager = self._get_edit_manager()
         context = self.get_context_data()
-        form = EmailManagerConfigForm(data=request.POST)
+        form = EmailManagerConfigForm(data=request.POST, instance=edit_manager)
         if form.is_valid():
             manager = form.cleaned_data.get("mail_manager")
             manager_form = MANAGER_CONFIG[manager]["form"](data=request.POST, prefix=manager, manager=manager)
             if manager_form.is_valid():
                 config = manager_form.cleaned_data
                 form.save(config)
-                messages.success(request, "Manager added successfully")
+                messages.success(
+                    request,
+                    "Manager updated successfully"
+                    if edit_manager
+                    else "Manager added successfully",
+                )
                 return redirect("mailer:settings")
             else:
                 messages.error(request, "Invalid form data")
-            forms_dict = {
-                manager: MANAGER_CONFIG[manager]["form"](manager=manager, prefix=manager)
-                for manager in MANAGER_CONFIG.keys()
-            }
+            forms_dict = self._manager_forms(edit_manager)
             forms_dict[manager] = manager_form
             context["forms"] = list(forms_dict.values())
         context["form"] = form
+        context["edit_manager"] = edit_manager
         return self.render_to_response(context)
