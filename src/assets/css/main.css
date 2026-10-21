@@ -1214,6 +1214,7 @@ label,
 /* ---------- Jobs page ---------- */
 .job-card {
   margin-bottom: 1rem;
+  animation: none;
 }
 
 .job-card-head {
